@@ -60,7 +60,7 @@ export function useAgents() {
 
   useEffect(() => {
     const poll = () => {
-      fetch(`${getBackendUrl()}/agents/status`)
+      fetch(`${getBackendUrl()}/agents/status`, { headers: NGROK_HEADERS })
         .then(r => r.json())
         .then(data => {
           setStatuses(data.status || {});
