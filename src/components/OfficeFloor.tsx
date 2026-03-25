@@ -13,7 +13,7 @@ export function OfficeFloor() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="text-4xl">🤖</div>
           <div className="text-muted-foreground text-sm">Initializing Jarvis HQ...</div>
@@ -42,19 +42,20 @@ export function OfficeFloor() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--amber-glow)/0.03),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(var(--monitor-glow)/0.02),transparent_60%)]" />
-      
-      {/* Grid lines on floor */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-        backgroundSize: '60px 60px',
-      }} />
+      {/* Ambient lighting */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse at 20% 10%, hsl(38 92% 50% / 0.06) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 90%, hsl(190 80% 55% / 0.03) 0%, transparent 40%)
+          `,
+        }}
+      />
 
       <div className={`relative z-10 transition-all duration-300 ${selectedAgent ? 'mr-[400px]' : ''}`}>
         {/* Header */}
-        <header className="pt-8 pb-6 px-6">
+        <header className="pt-6 pb-4 px-6">
           <div className="flex items-center justify-between">
             <div className="w-10" />
             <div className="text-center">
@@ -73,7 +74,7 @@ export function OfficeFloor() {
 
           {/* Settings dropdown */}
           {showSettings && (
-            <div className="max-w-md mx-auto mt-4 bg-card border border-border rounded-xl p-4 animate-fade-in">
+            <div className="max-w-md mx-auto mt-4 bg-card border border-border rounded-xl p-4">
               <label className="text-xs text-muted-foreground mb-2 block">Backend URL</label>
               <div className="flex gap-2">
                 <input
@@ -96,8 +97,8 @@ export function OfficeFloor() {
             </div>
           )}
 
-          {/* Connection + status bar */}
-          <div className="flex items-center justify-center gap-4 mt-4">
+          {/* Status bar */}
+          <div className="flex items-center justify-center gap-4 mt-3">
             {!connected && (
               <div className="flex items-center gap-1.5 text-xs text-destructive/80 bg-destructive/10 px-2.5 py-1 rounded-full">
                 <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
@@ -118,32 +119,82 @@ export function OfficeFloor() {
           </div>
         </header>
 
-        {/* Main agent - Jarvis */}
-        {mainAgent && (
-          <div className="max-w-xs mx-auto px-6 mb-6">
-            <AgentDesk
-              agent={mainAgent}
-              status={statuses[mainAgent.id] || 'idle'}
-              isMain
-              onClick={() => handleSelectAgent(mainAgent)}
+        {/* ISOMETRIC OFFICE SCENE */}
+        <div className="iso-scene flex items-center justify-center py-8">
+          <div className="iso-floor relative" style={{ width: 700, height: 500 }}>
+            {/* Floor grid */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'hsl(0 0% 6.5%)',
+                backgroundImage: `
+                  linear-gradient(hsl(0 0% 10%) 1px, transparent 1px),
+                  linear-gradient(90deg, hsl(0 0% 10%) 1px, transparent 1px)
+                `,
+                backgroundSize: '40px 40px',
+                borderRadius: 4,
+              }}
             />
-          </div>
-        )}
 
-        {/* Pipeline agents grid */}
-        <div className="max-w-3xl mx-auto px-6 pb-12">
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3 px-1">
-            Pipeline Agents
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {otherAgents.map(agent => (
-              <AgentDesk
-                key={agent.id}
-                agent={agent}
-                status={statuses[agent.id] || 'idle'}
-                onClick={() => handleSelectAgent(agent)}
-              />
-            ))}
+            {/* Boss platform + desk */}
+            {mainAgent && (
+              <div className="absolute" style={{ top: 40, left: '50%', transform: 'translateX(-50%)' }}>
+                {/* Raised platform */}
+                <div className="platform-3d relative" style={{ width: 180, height: 100 }}>
+                  <div className="platform-top absolute inset-0 rounded-sm" />
+                  <div className="platform-front rounded-b-sm" />
+                  <div className="platform-side rounded-r-sm" />
+                </div>
+                {/* Desk on platform */}
+                <div className="absolute" style={{ top: 10, left: 30 }}>
+                  <AgentDesk
+                    agent={mainAgent}
+                    status={statuses[mainAgent.id] || 'idle'}
+                    isMain
+                    onClick={() => handleSelectAgent(mainAgent)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Pipeline agents — two rows */}
+            {otherAgents.length > 0 && (
+              <>
+                {/* Row 1 */}
+                <div
+                  className="absolute flex gap-2 justify-center"
+                  style={{ top: 220, left: '50%', transform: 'translateX(-50%)' }}
+                >
+                  {otherAgents.slice(0, 4).map((agent, i) => (
+                    <div key={agent.id} style={{ marginTop: i % 2 === 1 ? 12 : 0 }}>
+                      <AgentDesk
+                        agent={agent}
+                        status={statuses[agent.id] || 'idle'}
+                        onClick={() => handleSelectAgent(agent)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Row 2 */}
+                {otherAgents.length > 4 && (
+                  <div
+                    className="absolute flex gap-2 justify-center"
+                    style={{ top: 370, left: '50%', transform: 'translateX(-50%)' }}
+                  >
+                    {otherAgents.slice(4, 8).map((agent, i) => (
+                      <div key={agent.id} style={{ marginTop: i % 2 === 0 ? 8 : 0 }}>
+                        <AgentDesk
+                          agent={agent}
+                          status={statuses[agent.id] || 'idle'}
+                          onClick={() => handleSelectAgent(agent)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -165,7 +216,7 @@ export function OfficeFloor() {
 function StatusPill({ label, count, active }: { label: string; count: number; active?: boolean }) {
   return (
     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-primary shadow-[0_0_4px_rgba(245,158,11,0.6)]' : 'bg-muted-foreground/30'}`} />
+      <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-primary status-pulse' : 'bg-muted-foreground/30'}`} />
       <span>{count} {label}</span>
     </div>
   );

@@ -13,108 +13,151 @@ export function AgentDesk({ agent, status, isMain, onClick }: AgentDeskProps) {
   const isHandoff = status === 'handoff';
   const isActive = isWorking || isReading || isHandoff;
 
+  const deskW = isMain ? 120 : 90;
+  const deskH = isMain ? 70 : 50;
+
   return (
     <button
       onClick={onClick}
-      className={`
-        relative group cursor-pointer transition-all duration-300
-        ${isMain ? 'col-span-2 md:col-span-3' : ''}
-      `}
+      className="relative group cursor-pointer focus:outline-none"
+      style={{ width: deskW + 40, height: deskH + 80 }}
     >
-      {/* Desk platform */}
-      <div className={`
-        relative rounded-xl p-4 transition-all duration-500
-        bg-card border border-border
-        ${isActive ? 'border-primary/40 shadow-[0_0_30px_rgba(245,158,11,0.15)]' : 'hover:border-primary/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]'}
-        ${isMain ? 'p-6' : ''}
-      `}>
-        {/* Lamp */}
-        <div className="absolute top-2 right-3 flex flex-col items-center">
-          <div className={`
-            w-1.5 h-6 rounded-full transition-all duration-500
-            ${isActive ? 'bg-lamp-warm' : 'bg-muted-foreground/20'}
-          `} />
-          <div className={`
-            w-4 h-2 rounded-full -mt-0.5 transition-all duration-500
-            ${isActive ? 'bg-lamp-warm shadow-[0_0_12px_rgba(251,191,36,0.6)]' : 'bg-muted-foreground/10'}
-            ${isWorking ? 'animate-lamp' : ''}
-          `} />
-        </div>
+      {/* Lamp light cone on desk surface */}
+      <div
+        className={`lamp-cone absolute ${isActive ? 'active' : ''}`}
+        style={{
+          width: deskW * 0.7,
+          height: deskH * 0.6,
+          top: 20,
+          left: 8,
+          borderRadius: '50%',
+          opacity: isActive ? 1 : 0.3,
+          pointerEvents: 'none',
+        }}
+      />
 
-        {/* Agent figure */}
-        <div className={`
-          flex flex-col items-center mb-3
-          ${isHandoff ? 'animate-handoff' : ''}
-        `}>
-          {/* Head */}
-          <div className={`
-            rounded-full flex items-center justify-center transition-all duration-300
-            ${isMain ? 'w-12 h-12 text-2xl' : 'w-9 h-9 text-lg'}
-            ${isActive ? 'bg-primary/20' : 'bg-muted'}
-          `}>
-            {agent.emoji}
-          </div>
-          
-          {/* Body */}
-          <div className={`
-            rounded-md mt-1 transition-all duration-300
-            ${isMain ? 'w-10 h-6' : 'w-7 h-4'}
-            bg-agent-body/40
-            ${isWorking ? 'animate-typing' : ''}
-            ${isReading ? 'translate-y-[-2px]' : ''}
-          `} />
+      {/* 3D Desk */}
+      <div className="desk-3d absolute" style={{ bottom: 24, left: 20, width: deskW, height: deskH }}>
+        {/* Desk top face */}
+        <div className="desk-top absolute inset-0 rounded-sm" />
+        {/* Desk front face */}
+        <div className="desk-front rounded-b-sm" />
+        {/* Desk side face */}
+        <div className="desk-side rounded-r-sm" />
+      </div>
 
-          {/* Reading document */}
-          {isReading && (
-            <div className="absolute top-8 right-8 animate-reading">
-              <div className="w-5 h-7 bg-primary/30 rounded-sm border border-primary/40" />
-            </div>
-          )}
-        </div>
-
-        {/* Monitor */}
-        <div className={`
-          mx-auto rounded-md border transition-all duration-500 flex items-center justify-center
-          ${isMain ? 'w-20 h-12' : 'w-14 h-8'}
-          ${isWorking ? 'bg-monitor-glow/20 border-monitor-glow/40 animate-monitor-glow' : ''}
-          ${isReading ? 'bg-monitor-glow/15 border-monitor-glow/30' : ''}
-          ${!isActive ? 'bg-monitor-dim/30 border-muted-foreground/10 animate-screensaver' : ''}
-        `}>
+      {/* Monitor */}
+      <div
+        className="absolute"
+        style={{
+          bottom: deskH + 26,
+          left: 20 + deskW * 0.3,
+          width: deskW * 0.4,
+        }}
+      >
+        {/* Monitor stand */}
+        <div
+          className="monitor-stand mx-auto"
+          style={{ width: 3, height: 6, marginBottom: -1 }}
+        />
+        {/* Monitor screen */}
+        <div
+          className={`monitor-screen relative overflow-hidden rounded-sm ${isActive ? 'active' : ''}`}
+          style={{
+            width: deskW * 0.4,
+            height: isMain ? 22 : 16,
+            transform: 'translateZ(32px)',
+          }}
+        >
+          {/* Scanlines */}
+          {isActive && <div className="screen-lines absolute inset-0" />}
+          {/* Working dots */}
           {isWorking && (
-            <div className="flex gap-0.5">
+            <div className="absolute inset-0 flex items-center justify-center gap-1">
               {[0, 1, 2].map(i => (
                 <div
                   key={i}
-                  className="w-1 h-1 rounded-full bg-monitor-glow animate-pulse-dot"
-                  style={{ animationDelay: `${i * 0.2}s` }}
+                  className="w-1 h-1 rounded-full animate-pulse-dot"
+                  style={{
+                    background: 'hsl(var(--monitor-glow))',
+                    animationDelay: `${i * 0.2}s`,
+                  }}
                 />
               ))}
             </div>
           )}
         </div>
-
-        {/* Nameplate */}
-        <div className={`
-          mt-3 text-center transition-all duration-300
-          ${isActive ? 'text-foreground' : 'text-muted-foreground'}
-        `}>
-          <div className={`font-semibold ${isMain ? 'text-sm' : 'text-xs'}`}>
-            {agent.displayName}
-          </div>
-          <div className={`text-[10px] mt-0.5 opacity-60 ${isMain ? '' : 'hidden md:block'}`}>
-            {agent.tag}
-          </div>
-        </div>
-
-        {/* Status indicator */}
-        <div className={`
-          absolute top-2 left-2 w-2 h-2 rounded-full transition-all duration-500
-          ${status === 'idle' ? 'bg-muted-foreground/30' : ''}
-          ${status === 'working' ? 'bg-primary shadow-[0_0_6px_rgba(245,158,11,0.8)]' : ''}
-          ${status === 'reading' ? 'bg-monitor-glow shadow-[0_0_6px_rgba(96,165,250,0.6)]' : ''}
-          ${status === 'handoff' ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : ''}
-        `} />
       </div>
+
+      {/* Desk lamp */}
+      <div
+        className="absolute"
+        style={{
+          bottom: deskH + 24,
+          left: 24,
+        }}
+      >
+        <div className="desk-lamp-arm" style={{ width: 2, height: 18 }}>
+          <div
+            className={`desk-lamp-head absolute -top-1 -left-[3px] ${isActive ? 'active animate-lamp-flicker' : 'dim'}`}
+          />
+        </div>
+      </div>
+
+      {/* Agent figure */}
+      <div
+        className="agent-figure absolute flex flex-col items-center"
+        style={{
+          bottom: deskH + 24,
+          left: 20 + deskW * 0.55,
+        }}
+      >
+        {/* Head */}
+        <div className={`agent-head ${isWorking ? 'working' : 'idle'}`} />
+        {/* Torso */}
+        <div className={`agent-torso ${isWorking ? 'working' : ''}`} />
+        {/* Arms */}
+        <div className="agent-arms">
+          <div className={`agent-arm ${isWorking ? 'typing-left' : ''}`} />
+          <div className={`agent-arm ${isWorking ? 'typing-right' : ''}`} />
+        </div>
+      </div>
+
+      {/* Nameplate (below desk, un-transformed for readability) */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+        style={{ bottom: 0 }}
+      >
+        <div className="flex items-center gap-1 bg-secondary/80 px-2 py-0.5 rounded-sm border border-border/50">
+          <span className="text-xs">{agent.emoji}</span>
+          <span className="text-[10px] font-semibold text-foreground whitespace-nowrap">
+            {agent.displayName}
+          </span>
+        </div>
+        {/* Status dot */}
+        <div className="flex items-center gap-1">
+          <div
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+              status === 'idle'
+                ? 'bg-muted-foreground/40'
+                : status === 'working'
+                ? 'bg-primary status-pulse'
+                : status === 'reading'
+                ? 'bg-monitor-glow'
+                : 'bg-green-500'
+            }`}
+          />
+          <span className="text-[8px] text-muted-foreground capitalize">{status}</span>
+        </div>
+      </div>
+
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.06), transparent 70%)',
+        }}
+      />
     </button>
   );
 }

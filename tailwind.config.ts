@@ -22,17 +22,24 @@ export default {
         },
         desk: {
           surface: 'hsl(var(--desk-surface))',
-          edge: 'hsl(var(--desk-edge))',
+          top: 'hsl(var(--desk-top))',
+          front: 'hsl(var(--desk-front))',
+          side: 'hsl(var(--desk-side))',
         },
         monitor: {
           glow: 'hsl(var(--monitor-glow))',
           dim: 'hsl(var(--monitor-dim))',
         },
-        floor: 'hsl(var(--floor))',
+        floor: {
+          DEFAULT: 'hsl(var(--floor))',
+          grid: 'hsl(var(--floor-grid))',
+        },
         lamp: {
           warm: 'hsl(var(--lamp-warm))',
+          cone: 'hsl(var(--lamp-cone))',
         },
         agent: {
+          head: 'hsl(var(--agent-head))',
           body: 'hsl(var(--agent-body))',
         },
         chat: {
