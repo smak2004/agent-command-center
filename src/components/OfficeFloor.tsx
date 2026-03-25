@@ -4,7 +4,7 @@ import { AgentDesk } from './AgentDesk';
 import { ChatPanel } from './ChatPanel';
 
 export function OfficeFloor() {
-  const { agents, statuses, loading } = useAgents();
+  const { agents, statuses, loading, connected } = useAgents();
   const { sendMessage, getMessages, sending } = useChat();
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
