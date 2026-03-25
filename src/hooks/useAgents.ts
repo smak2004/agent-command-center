@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const LS_KEY = 'jarvis-hq-backend-url';
+const NGROK_HEADERS = { 'ngrok-skip-browser-warning': '1' };
 
 export function getBackendUrl(): string {
   return localStorage.getItem(LS_KEY)
