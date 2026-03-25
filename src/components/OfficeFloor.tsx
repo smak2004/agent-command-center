@@ -17,24 +17,27 @@ const DESK_POSITIONS: Record<string, [number, number, number]> = {
   'pho-growth':        [ 2,   0, -2  ],
 };
 
+function GridLine({ points, color }: { points: [number,number,number][]; color: string }) {
+  const ref = useRef<THREE.BufferGeometry>(null);
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.setFromPoints(points.map(p => new THREE.Vector3(...p)));
+    }
+  }, [points]);
+  return (
+    <line>
+      <bufferGeometry ref={ref} />
+      <lineBasicMaterial color={color} />
+    </line>
+  );
+}
+
 function FloorGrid() {
   const lines = [];
   for (let i = -10; i <= 10; i++) {
     lines.push(
-      <line key={`h${i}`}>
-        <bufferGeometry attach="geometry" setFromPoints={[
-          { x: -10, y: 0, z: i } as any,
-          { x: 10, y: 0, z: i } as any,
-        ]} />
-        <lineBasicMaterial attach="material" color="#1f1f1f" />
-      </line>,
-      <line key={`v${i}`}>
-        <bufferGeometry attach="geometry" setFromPoints={[
-          { x: i, y: 0, z: -10 } as any,
-          { x: i, y: 0, z: 10 } as any,
-        ]} />
-        <lineBasicMaterial attach="material" color="#1f1f1f" />
-      </line>
+      <GridLine key={`h${i}`} points={[[-10, 0, i], [10, 0, i]]} color="#1f1f1f" />,
+      <GridLine key={`v${i}`} points={[[i, 0, -10], [i, 0, 10]]} color="#1f1f1f" />
     );
   }
   return <>{lines}</>;
