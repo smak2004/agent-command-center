@@ -1,7 +1,5 @@
 import { OfficeFloor } from '@/components/OfficeFloor';
 
-const Index = () => {
+export default function Index() {
   return <OfficeFloor />;
-};
-
-export default Index;
+}

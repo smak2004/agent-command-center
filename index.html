@@ -22,5 +22,13 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.addEventListener('error', function(e) {
+        document.body.innerHTML = '<div style="color:red;background:#000;padding:40px;font-family:monospace;font-size:14px;min-height:100vh;white-space:pre-wrap">ERROR:\n' + e.message + '\n\nFile: ' + e.filename + '\nLine: ' + e.lineno + '</div>';
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        document.body.innerHTML = '<div style="color:red;background:#000;padding:40px;font-family:monospace;font-size:14px;min-height:100vh;white-space:pre-wrap">UNHANDLED PROMISE REJECTION:\n' + (e.reason?.message || e.reason || 'unknown') + '\n\nStack:\n' + (e.reason?.stack || '') + '</div>';
+      });
+    </script>
   </body>
 </html>
