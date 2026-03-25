@@ -1,6 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const API_BASE = 'http://localhost:3001';
+const LS_KEY = 'jarvis-hq-backend-url';
+
+export function getBackendUrl(): string {
+  return localStorage.getItem(LS_KEY)
+    || import.meta.env.VITE_BACKEND_URL
+    || 'http://localhost:3001';
+}
+
+export function setBackendUrl(url: string) {
+  if (url.trim()) {
+    localStorage.setItem(LS_KEY, url.trim().replace(/\/+$/, ''));
+  } else {
+    localStorage.removeItem(LS_KEY);
+  }
+  // Trigger re-fetch by reloading
+  window.location.reload();
+}
 
 export interface Agent {
   id: string;
@@ -43,7 +59,7 @@ export function useAgents() {
   const demoTick = useRef(0);
 
   useEffect(() => {
-    fetch(`${API_BASE}/agents`)
+    fetch(`${getBackendUrl()}/agents`)
       .then(r => r.json())
       .then(data => {
         setAgents(data.agents || []);
@@ -60,7 +76,7 @@ export function useAgents() {
 
   useEffect(() => {
     const poll = () => {
-      fetch(`${API_BASE}/agents/status`)
+      fetch(`${getBackendUrl()}/agents/status`)
         .then(r => r.json())
         .then(data => {
           setStatuses(data.status || {});
@@ -108,7 +124,7 @@ export function useChat() {
     
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/message`, {
+      const res = await fetch(`${getBackendUrl()}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, agentId }),
