@@ -4,7 +4,7 @@ import { AgentDesk } from './AgentDesk';
 import { ChatPanel } from './ChatPanel';
 
 export function OfficeFloor() {
-  const { agents, statuses, loading } = useAgents();
+  const { agents, statuses, loading, connected } = useAgents();
   const { sendMessage, getMessages, sending } = useChat();
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
@@ -57,8 +57,20 @@ export function OfficeFloor() {
           </h1>
           <p className="text-xs text-muted-foreground mt-1">Command Center</p>
           
-          {/* Live status bar */}
+          {/* Connection + status bar */}
           <div className="flex items-center justify-center gap-4 mt-4">
+            {!connected && (
+              <div className="flex items-center gap-1.5 text-xs text-amber-400/80 bg-amber-400/10 px-2.5 py-1 rounded-full">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Demo Mode
+              </div>
+            )}
+            {connected && (
+              <div className="flex items-center gap-1.5 text-xs text-green-400/80">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                Live
+              </div>
+            )}
             <StatusPill label="Active" count={Object.values(statuses).filter(s => s !== 'idle').length} active />
             <StatusPill label="Total" count={agents.length} />
           </div>

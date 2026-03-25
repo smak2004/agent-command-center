@@ -21,34 +21,70 @@ export interface ChatMessage {
   agentId: string;
 }
 
+const MOCK_AGENTS: Agent[] = [
+  { id: 'jarvis', displayName: 'Jarvis', description: 'Central orchestrator and command hub', emoji: '🤖', tag: 'Orchestrator', isDefault: true },
+  { id: 'research', displayName: 'Research', description: 'Deep research and analysis', emoji: '🔍', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'concept', displayName: 'Concept', description: 'Ideation and concept development', emoji: '💡', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'script', displayName: 'Script', description: 'Script and copy writing', emoji: '✍️', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'brand', displayName: 'Brand', description: 'Brand strategy and identity', emoji: '🎨', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'creative', displayName: 'Creative', description: 'Visual and creative production', emoji: '🖼️', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'distribution', displayName: 'Distribution', description: 'Channel distribution strategy', emoji: '📡', tag: 'PHO Pipeline', isDefault: false },
+  { id: 'growth', displayName: 'Growth', description: 'Growth and performance optimization', emoji: '📈', tag: 'PHO Pipeline', isDefault: false },
+];
+
+// Cycle through demo statuses when backend is offline
+const DEMO_STATUSES: AgentStatus[] = ['idle', 'working', 'reading', 'idle', 'idle', 'working', 'idle', 'handoff'];
+
 export function useAgents() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [statuses, setStatuses] = useState<Record<string, AgentStatus>>({});
   const [loading, setLoading] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const demoTick = useRef(0);
 
   useEffect(() => {
     fetch(`${API_BASE}/agents`)
       .then(r => r.json())
       .then(data => {
         setAgents(data.agents || []);
+        setConnected(true);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        // Fallback to mock data
+        setAgents(MOCK_AGENTS);
+        setConnected(false);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     const poll = () => {
       fetch(`${API_BASE}/agents/status`)
         .then(r => r.json())
-        .then(data => setStatuses(data.status || {}))
-        .catch(() => {});
+        .then(data => {
+          setStatuses(data.status || {});
+          setConnected(true);
+        })
+        .catch(() => {
+          // Demo: rotate statuses so the office feels alive
+          if (!connected && agents.length > 0) {
+            demoTick.current++;
+            const demoStatuses: Record<string, AgentStatus> = {};
+            agents.forEach((a, i) => {
+              const idx = (demoTick.current + i * 3) % DEMO_STATUSES.length;
+              demoStatuses[a.id] = DEMO_STATUSES[idx];
+            });
+            setStatuses(demoStatuses);
+          }
+        });
     };
     poll();
     const interval = setInterval(poll, 1500);
     return () => clearInterval(interval);
-  }, []);
+  }, [agents, connected]);
 
-  return { agents, statuses, loading };
+  return { agents, statuses, loading, connected };
 }
 
 export function useChat() {
