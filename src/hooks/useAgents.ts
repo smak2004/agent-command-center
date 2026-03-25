@@ -101,7 +101,7 @@ export function useChat() {
     try {
       const res = await fetch(`${getBackendUrl()}/message`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
         body: JSON.stringify({ message, agentId }),
       });
       const data = await res.json();
