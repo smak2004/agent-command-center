@@ -1,6 +1,6 @@
 import { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Agent, useAgents, useChat, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
 import { AgentDesk3D } from './AgentDesk3D';
 import { ChatPanel } from './ChatPanel';
@@ -17,6 +17,29 @@ const DESK_POSITIONS: Record<string, [number, number, number]> = {
   'pho-growth':        [ 2,   0, -2  ],
 };
 
+function FloorGrid() {
+  const lines = [];
+  for (let i = -10; i <= 10; i++) {
+    lines.push(
+      <line key={`h${i}`}>
+        <bufferGeometry attach="geometry" setFromPoints={[
+          { x: -10, y: 0, z: i } as any,
+          { x: 10, y: 0, z: i } as any,
+        ]} />
+        <lineBasicMaterial attach="material" color="#1f1f1f" />
+      </line>,
+      <line key={`v${i}`}>
+        <bufferGeometry attach="geometry" setFromPoints={[
+          { x: i, y: 0, z: -10 } as any,
+          { x: i, y: 0, z: 10 } as any,
+        ]} />
+        <lineBasicMaterial attach="material" color="#1f1f1f" />
+      </line>
+    );
+  }
+  return <>{lines}</>;
+}
+
 function Scene({
   agents,
   statuses,
@@ -30,30 +53,20 @@ function Scene({
 }) {
   return (
     <>
-      <ambientLight intensity={0.25} color="#fff8f0" />
+      <ambientLight intensity={0.3} color="#fff8f0" />
       <directionalLight position={[-8, 12, 6]} intensity={0.8} color="#fff5e0" castShadow />
-      <pointLight position={[0, 8, 0]} intensity={0.4} color="#F59E0B" distance={20} decay={2} />
+      <pointLight position={[0, 8, 0]} intensity={0.5} color="#F59E0B" distance={20} decay={2} />
 
       {/* Floor */}
-      <mesh position={[0, -0.05, 0]} receiveShadow>
-        <boxGeometry args={[22, 0.1, 16]} />
-        <meshStandardMaterial color="#111111" roughness={0.9} metalness={0.1} />
+      <mesh position={[0, -0.06, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[30, 30]} />
+        <meshStandardMaterial color="#111111" roughness={0.95} />
       </mesh>
 
-      <Grid
-        position={[0, 0, 0]}
-        args={[22, 16]}
-        cellSize={1}
-        cellThickness={0.3}
-        cellColor="#1f1f1f"
-        sectionSize={4}
-        sectionThickness={0.5}
-        sectionColor="#2a2a2a"
-        fadeDistance={30}
-        fadeStrength={1}
-        infiniteGrid={false}
-      />
+      {/* Grid lines */}
+      <FloorGrid />
 
+      {/* Agent desks */}
       {agents.map((agent) => {
         const pos = DESK_POSITIONS[agent.id] ?? [0, 0, 0];
         return (
@@ -96,33 +109,28 @@ export function OfficeFloor() {
   };
 
   return (
-    <div className="w-screen h-screen bg-[#0a0a0a] flex flex-col overflow-hidden">
+    <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Top bar */}
-      <header className="flex items-center justify-between px-5 py-3 border-b border-white/5 z-20 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <span className="text-amber-500 text-lg">⬡</span>
-          <h1 className="text-sm font-semibold text-white tracking-wide">Jarvis HQ</h1>
-          <span className="text-xs text-white/30">Command Center</span>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0, zIndex: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ color: '#F59E0B', fontSize: 18 }}>⬡</span>
+          <h1 style={{ color: 'white', fontSize: 14, fontWeight: 600, margin: 0 }}>Jarvis HQ</h1>
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Command Center</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${
-            connected ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'
-          }`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '3px 10px', borderRadius: 99, background: connected ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)', color: connected ? '#4ade80' : '#f87171' }}>
             {connected ? <Wifi size={11} /> : <WifiOff size={11} />}
             <span>{connected ? 'Live' : 'Demo'}</span>
           </div>
-          <span className="text-[10px] text-white/20 font-mono hidden md:block max-w-[180px] truncate">
+          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, fontFamily: 'monospace', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {getBackendUrl()}
           </span>
-          <div className="flex items-center gap-1.5 text-xs text-white/40">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.8)]" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', boxShadow: '0 0 6px #F59E0B' }} />
             {Object.values(statuses).filter(s => s !== 'idle').length} active
           </div>
-          <button
-            onClick={() => setShowSettings(s => !s)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-colors"
-          >
+          <button onClick={() => setShowSettings(s => !s)} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Settings size={15} />
           </button>
         </div>
@@ -130,47 +138,35 @@ export function OfficeFloor() {
 
       {/* Settings panel */}
       {showSettings && (
-        <div className="absolute top-14 right-4 z-30 bg-[#161616] border border-white/10 rounded-xl p-4 w-80 shadow-2xl">
-          <label className="text-xs text-white/40 mb-2 block">Backend URL</label>
-          <div className="flex gap-2">
+        <div style={{ position: 'absolute', top: 56, right: 16, zIndex: 30, background: '#161616', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, width: 320, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
+          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Backend URL</label>
+          <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={urlInput}
               onChange={e => setUrlInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && setBackendUrl(urlInput)}
               placeholder="https://your-ngrok-url.ngrok-free.app"
-              className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20 outline-none focus:ring-1 focus:ring-amber-500/50"
+              style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: 'white', outline: 'none' }}
             />
-            <button
-              onClick={() => setBackendUrl(urlInput)}
-              className="px-3 py-2 rounded-lg bg-amber-500 text-black text-sm font-medium hover:bg-amber-400 transition-colors flex items-center gap-1.5"
-            >
+            <button onClick={() => setBackendUrl(urlInput)} style={{ padding: '8px 12px', borderRadius: 8, background: '#F59E0B', border: 'none', color: 'black', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Check size={13} /> Save
             </button>
           </div>
-          <p className="text-[10px] text-white/20 mt-2">Saved to localStorage. Reloads on save.</p>
         </div>
       )}
 
       {/* 3D Canvas */}
-      <div className={`flex-1 transition-all duration-300 ${selectedAgent ? 'mr-[420px]' : ''}`}>
+      <div style={{ flex: 1, marginRight: selectedAgent ? 420 : 0, transition: 'margin 0.3s ease', position: 'relative' }}>
         {loading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="text-4xl animate-pulse">🤖</div>
-              <div className="text-white/40 text-sm">Initializing Jarvis HQ...</div>
-              <div className="flex gap-1.5">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </div>
-            </div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+            <div style={{ fontSize: 40 }}>🤖</div>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Initializing Jarvis HQ...</div>
           </div>
         ) : (
           <Canvas
-            camera={{ position: [10, 10, 10], fov: 45 }}
+            camera={{ position: [12, 10, 12], fov: 45 }}
             shadows
-            gl={{ antialias: true, alpha: false }}
-            style={{ background: '#0a0a0a' }}
+            style={{ width: '100%', height: '100%', background: '#0a0a0a' }}
           >
             <Suspense fallback={null}>
               <Scene
