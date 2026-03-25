@@ -124,7 +124,7 @@ export function useChat() {
     
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/message`, {
+      const res = await fetch(`${getBackendUrl()}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, agentId }),
