@@ -1,6 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const API_BASE = 'http://localhost:3001';
+const LS_KEY = 'jarvis-hq-backend-url';
+
+export function getBackendUrl(): string {
+  return localStorage.getItem(LS_KEY)
+    || import.meta.env.VITE_BACKEND_URL
+    || 'http://localhost:3001';
+}
+
+export function setBackendUrl(url: string) {
+  if (url.trim()) {
+    localStorage.setItem(LS_KEY, url.trim().replace(/\/+$/, ''));
+  } else {
+    localStorage.removeItem(LS_KEY);
+  }
+  // Trigger re-fetch by reloading
+  window.location.reload();
+}
 
 export interface Agent {
   id: string;
