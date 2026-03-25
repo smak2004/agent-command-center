@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Agent, AgentStatus, useAgents, useChat } from '@/hooks/useAgents';
+import { Agent, useAgents, useChat, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
 import { AgentDesk } from './AgentDesk';
 import { ChatPanel } from './ChatPanel';
+import { Settings, Check } from 'lucide-react';
 
 export function OfficeFloor() {
   const { agents, statuses, loading, connected } = useAgents();
   const { sendMessage, getMessages, sending } = useChat();
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [urlInput, setUrlInput] = useState(getBackendUrl());
 
   if (loading) {
     return (
