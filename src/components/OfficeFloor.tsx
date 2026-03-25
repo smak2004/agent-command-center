@@ -1,4 +1,5 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useRef, useEffect } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Agent, useAgents, useChat, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
