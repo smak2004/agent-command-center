@@ -13,7 +13,32 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
       colors: {
+        amber: {
+          glow: 'hsl(var(--amber-glow))',
+        },
+        desk: {
+          surface: 'hsl(var(--desk-surface))',
+          edge: 'hsl(var(--desk-edge))',
+        },
+        monitor: {
+          glow: 'hsl(var(--monitor-glow))',
+          dim: 'hsl(var(--monitor-dim))',
+        },
+        floor: 'hsl(var(--floor))',
+        lamp: {
+          warm: 'hsl(var(--lamp-warm))',
+        },
+        agent: {
+          body: 'hsl(var(--agent-body))',
+        },
+        chat: {
+          user: 'hsl(var(--chat-user-bubble))',
+          agent: 'hsl(var(--chat-agent-bubble))',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
