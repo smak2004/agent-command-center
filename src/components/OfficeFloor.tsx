@@ -99,9 +99,9 @@ export function OfficeFloor() {
           {/* Connection + status bar */}
           <div className="flex items-center justify-center gap-4 mt-4">
             {!connected && (
-              <div className="flex items-center gap-1.5 text-xs text-amber-400/80 bg-amber-400/10 px-2.5 py-1 rounded-full">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Demo Mode
+              <div className="flex items-center gap-1.5 text-xs text-destructive/80 bg-destructive/10 px-2.5 py-1 rounded-full">
+                <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                Disconnected
               </div>
             )}
             {connected && (
