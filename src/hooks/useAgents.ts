@@ -45,7 +45,7 @@ export function useAgents() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    fetch(`${getBackendUrl()}/agents`)
+    fetch(`${getBackendUrl()}/agents`, { headers: NGROK_HEADERS })
       .then(r => r.json())
       .then(data => {
         setAgents(data.agents || []);
