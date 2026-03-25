@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const LS_KEY = 'jarvis-hq-backend-url';
+const NGROK_HEADERS = { 'ngrok-skip-browser-warning': '1' };
 
 export function getBackendUrl(): string {
   return localStorage.getItem(LS_KEY)
@@ -44,7 +45,7 @@ export function useAgents() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    fetch(`${getBackendUrl()}/agents`)
+    fetch(`${getBackendUrl()}/agents`, { headers: NGROK_HEADERS })
       .then(r => r.json())
       .then(data => {
         setAgents(data.agents || []);
@@ -59,7 +60,7 @@ export function useAgents() {
 
   useEffect(() => {
     const poll = () => {
-      fetch(`${getBackendUrl()}/agents/status`)
+      fetch(`${getBackendUrl()}/agents/status`, { headers: NGROK_HEADERS })
         .then(r => r.json())
         .then(data => {
           setStatuses(data.status || {});
@@ -100,7 +101,7 @@ export function useChat() {
     try {
       const res = await fetch(`${getBackendUrl()}/message`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
         body: JSON.stringify({ message, agentId }),
       });
       const data = await res.json();
