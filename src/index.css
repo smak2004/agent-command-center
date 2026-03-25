@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
@@ -51,13 +47,18 @@ All colors MUST be HSL.
 
     /* Custom tokens */
     --amber-glow: 38 92% 50%;
-    --desk-surface: 30 15% 18%;
-    --desk-edge: 30 10% 12%;
-    --monitor-glow: 200 80% 60%;
+    --desk-surface: 25 40% 12%;
+    --desk-top: 25 35% 15%;
+    --desk-front: 25 30% 10%;
+    --desk-side: 25 25% 8%;
+    --monitor-glow: 190 80% 55%;
     --monitor-dim: 200 20% 20%;
     --floor: 0 0% 7%;
+    --floor-grid: 0 0% 10%;
     --lamp-warm: 35 100% 65%;
-    --agent-body: 0 0% 45%;
+    --lamp-cone: 38 90% 50%;
+    --agent-head: 30 20% 65%;
+    --agent-body: 220 15% 35%;
     --chat-user-bubble: 38 92% 50%;
     --chat-agent-bubble: 0 0% 15%;
   }
@@ -71,41 +72,249 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
   }
 }
 
-/* Isometric transforms */
-.isometric-scene {
-  perspective: 1200px;
-  perspective-origin: 50% 40%;
+/* ===== ISOMETRIC SCENE ===== */
+.iso-scene {
+  perspective: 1400px;
+  perspective-origin: 50% 35%;
 }
 
-.isometric-floor {
-  transform: rotateX(55deg) rotateZ(-45deg);
+.iso-floor {
+  transform: rotateX(60deg) rotateZ(-45deg);
   transform-style: preserve-3d;
 }
 
-/* Agent animations */
-@keyframes typing {
-  0%, 100% { transform: translateY(0); }
-  25% { transform: translateY(-2px); }
-  50% { transform: translateY(0); }
-  75% { transform: translateY(-1px); }
+/* ===== 3D DESK ===== */
+.desk-3d {
+  transform-style: preserve-3d;
+  position: relative;
 }
 
-@keyframes monitor-glow {
+.desk-top {
+  background: hsl(var(--desk-top));
+  transform: translateZ(28px);
+  position: relative;
+  border: 1px solid hsl(var(--desk-top) / 0.6);
+}
+
+.desk-front {
+  background: hsl(var(--desk-front));
+  transform: rotateX(-90deg);
+  transform-origin: bottom;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+}
+
+.desk-side {
+  background: hsl(var(--desk-side));
+  transform: rotateY(90deg);
+  transform-origin: right;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  bottom: 0;
+}
+
+/* ===== PLATFORM (boss desk) ===== */
+.platform-3d {
+  transform-style: preserve-3d;
+}
+
+.platform-top {
+  background: hsl(0 0% 10%);
+  transform: translateZ(10px);
+  border: 1px solid hsl(0 0% 14%);
+}
+
+.platform-front {
+  background: hsl(0 0% 7%);
+  transform: rotateX(-90deg);
+  transform-origin: bottom;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.platform-side {
+  background: hsl(0 0% 5%);
+  transform: rotateY(90deg);
+  transform-origin: right;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  bottom: 0;
+}
+
+/* ===== MONITOR ===== */
+.monitor-screen {
+  background: hsl(var(--monitor-dim));
+  border: 1px solid hsl(var(--monitor-glow) / 0.2);
+  transform: translateZ(32px) rotateX(-15deg);
+  transform-origin: bottom;
+  transition: all 0.5s ease;
+}
+
+.monitor-screen.active {
+  background: hsl(var(--monitor-glow) / 0.15);
+  border-color: hsl(var(--monitor-glow) / 0.5);
+  box-shadow: 
+    0 0 15px hsl(var(--monitor-glow) / 0.3),
+    0 0 30px hsl(var(--monitor-glow) / 0.1),
+    inset 0 0 10px hsl(var(--monitor-glow) / 0.1);
+}
+
+.monitor-stand {
+  background: hsl(0 0% 25%);
+  transform: translateZ(29px);
+}
+
+/* ===== DESK LAMP ===== */
+.desk-lamp-arm {
+  background: hsl(0 0% 35%);
+  transform: translateZ(29px) rotate(-30deg);
+  transform-origin: bottom center;
+  transition: all 0.5s ease;
+}
+
+.desk-lamp-head {
+  width: 8px;
+  height: 5px;
+  border-radius: 2px 2px 0 0;
+  background: hsl(var(--lamp-warm));
+  transition: all 0.5s ease;
+}
+
+.desk-lamp-head.active {
+  background: hsl(var(--lamp-warm));
+  box-shadow: 0 0 8px hsl(var(--lamp-warm) / 0.8), 0 0 20px hsl(var(--lamp-warm) / 0.4);
+}
+
+.desk-lamp-head.dim {
+  background: hsl(var(--lamp-warm) / 0.3);
+  box-shadow: none;
+}
+
+/* Lamp light cone */
+.lamp-cone {
+  background: radial-gradient(
+    ellipse at top,
+    hsl(var(--lamp-cone) / 0.12) 0%,
+    hsl(var(--lamp-cone) / 0.04) 50%,
+    transparent 70%
+  );
+  transition: opacity 0.5s ease;
+}
+
+.lamp-cone.active {
+  background: radial-gradient(
+    ellipse at top,
+    hsl(var(--lamp-cone) / 0.25) 0%,
+    hsl(var(--lamp-cone) / 0.08) 50%,
+    transparent 70%
+  );
+}
+
+/* ===== AGENT FIGURE ===== */
+.agent-figure {
+  transform-style: preserve-3d;
+  transform: translateZ(29px);
+  transition: all 0.3s ease;
+}
+
+.agent-head {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: hsl(var(--agent-head));
+  transition: transform 0.3s ease;
+}
+
+.agent-head.idle {
+  transform: rotate(5deg);
+}
+
+.agent-head.working {
+  transform: rotate(-5deg) translateY(1px);
+}
+
+.agent-torso {
+  width: 12px;
+  height: 10px;
+  border-radius: 2px;
+  background: hsl(var(--agent-body));
+  margin-top: 1px;
+  transition: transform 0.3s ease;
+}
+
+.agent-torso.working {
+  transform: rotateX(-10deg) translateY(-1px);
+}
+
+.agent-arms {
+  display: flex;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.agent-arm {
+  width: 4px;
+  height: 8px;
+  border-radius: 1px;
+  background: hsl(var(--agent-head) / 0.8);
+  transition: transform 0.2s ease;
+}
+
+.agent-arm.typing-left {
+  animation: arm-type-left 0.4s ease-in-out infinite;
+}
+
+.agent-arm.typing-right {
+  animation: arm-type-right 0.4s ease-in-out infinite 0.2s;
+}
+
+/* ===== NAMEPLATE ===== */
+.nameplate {
+  background: hsl(0 0% 12%);
+  border: 1px solid hsl(0 0% 18%);
+  color: hsl(var(--foreground));
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+  transform: translateZ(2px) rotateX(-60deg) rotateZ(45deg);
+  letter-spacing: 0.02em;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes arm-type-left {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes arm-type-right {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes monitor-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
 
-@keyframes screensaver {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.25; }
-}
-
-@keyframes reading-tilt {
-  0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
+@keyframes screen-lines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 20px; }
 }
 
 @keyframes pulse-dots {
@@ -114,44 +323,32 @@ All colors MUST be HSL.
 }
 
 @keyframes lamp-flicker {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 1; }
-}
-
-@keyframes walk-handoff {
-  0% { transform: translate(0, 0); }
-  30% { transform: translate(40px, -20px); }
-  50% { transform: translate(60px, -10px); }
-  70% { transform: translate(40px, -20px); }
-  100% { transform: translate(0, 0); }
-}
-
-.animate-typing {
-  animation: typing 0.3s ease-in-out infinite;
-}
-
-.animate-monitor-glow {
-  animation: monitor-glow 2s ease-in-out infinite;
-}
-
-.animate-screensaver {
-  animation: screensaver 3s ease-in-out infinite;
-}
-
-.animate-reading {
-  animation: reading-tilt 3s ease-in-out infinite;
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.85; }
 }
 
 .animate-pulse-dot {
   animation: pulse-dots 1.4s ease-in-out infinite;
 }
 
-.animate-lamp {
-  animation: lamp-flicker 4s ease-in-out infinite;
+.animate-lamp-flicker {
+  animation: lamp-flicker 6s ease-in-out infinite;
 }
 
-.animate-handoff {
-  animation: walk-handoff 2s ease-in-out;
+.animate-monitor-pulse {
+  animation: monitor-pulse 2s ease-in-out infinite;
+}
+
+/* Screen scanline effect */
+.screen-lines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    hsl(var(--monitor-glow) / 0.05) 2px,
+    hsl(var(--monitor-glow) / 0.05) 4px
+  );
+  animation: screen-lines 2s linear infinite;
 }
 
 /* Chat panel slide */
@@ -160,15 +357,16 @@ All colors MUST be HSL.
   to { transform: translateX(0); opacity: 1; }
 }
 
-@keyframes slide-out-to-right {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(100%); opacity: 0; }
-}
-
 .chat-slide-in {
   animation: slide-in-from-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.chat-slide-out {
-  animation: slide-out-to-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+/* Status dot pulse */
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
+  50% { box-shadow: 0 0 0 4px hsl(var(--primary) / 0); }
+}
+
+.status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
 }
