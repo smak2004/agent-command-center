@@ -59,7 +59,7 @@ export function useAgents() {
   const demoTick = useRef(0);
 
   useEffect(() => {
-    fetch(`${API_BASE}/agents`)
+    fetch(`${getBackendUrl()}/agents`)
       .then(r => r.json())
       .then(data => {
         setAgents(data.agents || []);
