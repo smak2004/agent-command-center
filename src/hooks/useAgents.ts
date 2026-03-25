@@ -76,7 +76,7 @@ export function useAgents() {
 
   useEffect(() => {
     const poll = () => {
-      fetch(`${API_BASE}/agents/status`)
+      fetch(`${getBackendUrl()}/agents/status`)
         .then(r => r.json())
         .then(data => {
           setStatuses(data.status || {});
