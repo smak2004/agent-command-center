@@ -76,18 +76,6 @@ const WANDER_SPOTS: [number, number, number][] = [
   [-10,  0,  6  ],  // plant corner
   [ 10,  0,  6  ],  // plant corner
   [ 0,   0,  5.5],  // chill area
-  [-8,   0, 10  ],  // gym
-  [-7,   0, 11  ],  // gym
-  [-9,   0, 11  ],  // gym
-  [ 8,   0, 10  ],  // kitchen
-  [ 7,   0, 11  ],  // kitchen
-  [ 9,   0, 11  ],  // kitchen
-  [-1,   0, 12  ],  // war room
-  [ 1,   0, 12  ],  // war room
-  [ 0,   0, 13  ],  // war room
-  [-1,   0, 15  ],  // rooftop
-  [ 1,   0, 15  ],  // rooftop
-  [ 0,   0, 16  ],  // rooftop
 ];
 
 // ─── Parquet texture ──────────────────────────────────────────────────────────
@@ -274,215 +262,6 @@ function ChillLounge({ position }: { position: [number,number,number] }) {
       <mesh position={[-1.5,0.9,-0.9]}><cylinderGeometry args={[0.025,0.025,1.9,6]} /><meshStandardMaterial color="#333" metalness={0.8} /></mesh>
       <pointLight position={[-1.5,1.8,-0.8]} color="#fff5cc" intensity={1.5} distance={4} decay={2} />
       <Text position={[0,2.1,-1.3]} fontSize={0.18} color="#a78bfa" anchorX="center" outlineWidth={0.015} outlineColor="#000">Chill Zone</Text>
-    </group>
-  );
-}
-
-// ─── Gym Area ─────────────────────────────────────────────────────────────────
-function GymArea({ position }: { position: [number,number,number] }) {
-  const bagRef = useRef<THREE.Group>(null);
-  useFrame(({ clock }) => {
-    if (bagRef.current) bagRef.current.rotation.z = Math.sin(clock.elapsedTime * 1.4) * 0.22;
-  });
-  const treadmillPositions: number[] = [-1.4, 1.4];
-  return (
-    <group position={position}>
-      {/* Floor mat — small decorative only */}
-      <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
-        <planeGeometry args={[3,2.5]} />
-        <meshStandardMaterial color="#111118" roughness={1} />
-      </mesh>
-      {/* Treadmills */}
-      {treadmillPositions.map((x, ti) => (
-        <group key={ti} position={[x,0,-0.5]}>
-          {([[-0.3,-0.18,-0.62],[0.3,-0.18,-0.62],[-0.3,-0.18,0.62],[0.3,-0.18,0.62]] as [number,number,number][]).map((p,i) => (
-            <mesh key={i} position={p}><boxGeometry args={[0.06,0.36,0.06]} /><meshStandardMaterial color="#333" metalness={0.7} /></mesh>
-          ))}
-          <mesh position={[0,0.18,0]}><boxGeometry args={[0.72,0.1,1.36]} /><meshStandardMaterial color="#1a1a1a" metalness={0.6} /></mesh>
-          <mesh position={[0,0.25,0]}><boxGeometry args={[0.56,0.02,1.1]} /><meshStandardMaterial color="#222" roughness={0.6} /></mesh>
-          <mesh position={[-0.28,0.58,0.5]} rotation={[0.3,0,0]}><boxGeometry args={[0.04,0.54,0.04]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
-          <mesh position={[0.28,0.58,0.5]} rotation={[0.3,0,0]}><boxGeometry args={[0.04,0.54,0.04]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
-          <mesh position={[0,0.62,0.52]}><boxGeometry args={[0.6,0.04,0.04]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
-          <mesh position={[0,0.74,0.54]}><boxGeometry args={[0.28,0.14,0.02]} /><meshStandardMaterial color="#001122" emissive="#22aaff" emissiveIntensity={0.6} /></mesh>
-        </group>
-      ))}
-      {/* Dumbbell rack */}
-      <group position={[0,0,1.6]}>
-        <mesh position={[0,0.42,0]}><boxGeometry args={[2.4,0.05,0.3]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
-        <mesh position={[0,0.22,0]}><boxGeometry args={[2.4,0.05,0.3]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
-        <mesh position={[-1.2,0.32,0]}><boxGeometry args={[0.04,0.4,0.3]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
-        <mesh position={[1.2,0.32,0]}><boxGeometry args={[0.04,0.4,0.3]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
-        {[-0.85,-0.28,0.28,0.85].map((x, i) => (
-          <group key={i} position={[x,0.3,0]}>
-            <mesh position={[-0.12,0,0]}><boxGeometry args={[0.06,0.14,0.14]} /><meshStandardMaterial color="#444" metalness={0.8} /></mesh>
-            <mesh position={[0.12,0,0]}><boxGeometry args={[0.06,0.14,0.14]} /><meshStandardMaterial color="#444" metalness={0.8} /></mesh>
-            <mesh><boxGeometry args={[0.28,0.04,0.04]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-          </group>
-        ))}
-      </group>
-      {/* Punching bag — swings on useFrame */}
-      <group ref={bagRef} position={[0,0,-1.6]}>
-        <mesh position={[0,2.0,0]}><cylinderGeometry args={[0.02,0.02,0.3,6]} /><meshStandardMaterial color="#777" metalness={0.9} /></mesh>
-        <mesh position={[0,1.75,0]}><cylinderGeometry args={[0.17,0.14,0.7,10]} /><meshStandardMaterial color="#8b0000" roughness={0.7} /></mesh>
-        <mesh position={[0,2.1,0]}><sphereGeometry args={[0.17,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
-        <mesh position={[0,1.4,0]}><sphereGeometry args={[0.14,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
-      </group>
-      {/* Ceiling mount for bag */}
-      <mesh position={[0,2.2,-1.6]}><boxGeometry args={[0.16,0.08,0.16]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
-      {/* Pull-up bar */}
-      <mesh position={[0,2.4,0.6]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[0.025,0.025,1.5,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <mesh position={[-0.75,2.16,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <mesh position={[0.75,2.16,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <pointLight position={[0,2.5,0]} color="#ff8822" intensity={1.5} distance={6} decay={2} />
-      <Text position={[0,2.4,0]} fontSize={0.24} color="#fb923c" anchorX="center" outlineWidth={0.016} outlineColor="#000">🏋️ Gym</Text>
-    </group>
-  );
-}
-
-// ─── Kitchen / Café ───────────────────────────────────────────────────────────
-function KitchenCafe({ position }: { position: [number,number,number] }) {
-  return (
-    <group position={position}>
-      {/* Floor mat — small decorative only */}
-      <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
-        <planeGeometry args={[3,2.5]} />
-        <meshStandardMaterial color="#1c1410" roughness={0.9} />
-      </mesh>
-      {/* Counter island */}
-      <mesh position={[0,0.48,0]}><boxGeometry args={[2.4,0.08,0.9]} /><meshStandardMaterial color="#3d2b1f" roughness={0.4} /></mesh>
-      <mesh position={[0,0.24,0]}><boxGeometry args={[2.3,0.48,0.8]} /><meshStandardMaterial color="#2a1e14" roughness={0.6} /></mesh>
-      {/* Coffee machine */}
-      <group position={[-0.8,0.52,0]}>
-        <mesh position={[0,0.18,0]}><boxGeometry args={[0.28,0.36,0.22]} /><meshStandardMaterial color="#111" metalness={0.7} /></mesh>
-        <mesh position={[0,0.38,0.1]}><boxGeometry args={[0.14,0.08,0.04]} /><meshStandardMaterial color="#1a0a00" emissive="#4a2000" emissiveIntensity={0.8} /></mesh>
-        <mesh position={[0,0.14,0.12]}><cylinderGeometry args={[0.04,0.04,0.06,8]} /><meshStandardMaterial color="#222" metalness={0.8} /></mesh>
-        <mesh position={[-0.06,0.06,0.12]}><cylinderGeometry args={[0.022,0.022,0.12,6]} /><meshStandardMaterial color="#555" metalness={0.9} /></mesh>
-      </group>
-      {/* Cups on counter */}
-      {([-0.2, 0.1, 0.35] as number[]).map((x, i) => (
-        <group key={i} position={[x,0.53,0.1]}>
-          <mesh><cylinderGeometry args={[0.04,0.032,0.08,8]} /><meshStandardMaterial color={i===0?'#ffffff':'#f5f5f0'} roughness={0.5} /></mesh>
-          <mesh position={[0,0.04,0]}><cylinderGeometry args={[0.038,0.038,0.005,8]} /><meshStandardMaterial color="#3d1c02" roughness={0.8} /></mesh>
-        </group>
-      ))}
-      {/* Snack shelf */}
-      <group position={[0,1.4,-1.8]}>
-        <mesh position={[0,0,0]}><boxGeometry args={[2.4,0.05,0.35]} /><meshStandardMaterial color="#3d2b1f" roughness={0.5} /></mesh>
-        <mesh position={[0,-0.5,0]}><boxGeometry args={[2.4,0.05,0.35]} /><meshStandardMaterial color="#3d2b1f" roughness={0.5} /></mesh>
-        {([-0.9,-0.5,-0.1,0.3,0.7,1.1] as number[]).map((x,i) => (
-          <mesh key={i} position={[x,-0.22,0]}><boxGeometry args={[0.18,0.28,0.15]} /><meshStandardMaterial color={(['#c94020','#2a6a2a','#4444aa','#aa8822','#882244','#228888'] as string[])[i%6]} roughness={0.7} /></mesh>
-        ))}
-      </group>
-      {/* Bar stools */}
-      {([-0.9, 0, 0.9] as number[]).map((x, i) => (
-        <group key={i} position={[x,0,0.82]}>
-          <mesh position={[0,0.62,0]}><cylinderGeometry args={[0.2,0.18,0.06,10]} /><meshStandardMaterial color="#2a1e14" roughness={0.7} /></mesh>
-          <mesh position={[0,0.32,0]}><cylinderGeometry args={[0.025,0.025,0.6,8]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
-          <mesh position={[0,0.05,0]}><cylinderGeometry args={[0.2,0.2,0.04,8]} /><meshStandardMaterial color="#333" metalness={0.6} /></mesh>
-        </group>
-      ))}
-      <pointLight position={[0,2.5,0]} color="#ff9944" intensity={2} distance={6} decay={2} />
-      <Text position={[0,2.4,-1.4]} fontSize={0.24} color="#fbbf24" anchorX="center" outlineWidth={0.016} outlineColor="#000">☕ Kitchen</Text>
-    </group>
-  );
-}
-
-// ─── War Room ─────────────────────────────────────────────────────────────────
-function WarRoom({ position }: { position: [number,number,number] }) {
-  const screenRef = useRef<THREE.MeshStandardMaterial>(null);
-  useFrame(({ clock }) => {
-    if (screenRef.current) screenRef.current.emissiveIntensity = 0.65 + Math.sin(clock.elapsedTime * 0.9) * 0.18;
-  });
-  const chairAngles = Array.from({length:8}, (_,i) => (i/8)*Math.PI*2);
-  return (
-    <group position={position}>
-      {/* Floor mat — small decorative only */}
-      <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
-        <planeGeometry args={[4,3]} />
-        <meshStandardMaterial color="#150505" roughness={1} />
-      </mesh>
-      {/* Conference table */}
-      <mesh position={[0,0.72,0]}><boxGeometry args={[4.0,0.08,1.8]} /><meshStandardMaterial color="#1a0a0a" roughness={0.4} metalness={0.3} /></mesh>
-      {([[-1.8,-0.25,-0.8],[1.8,-0.25,-0.8],[-1.8,-0.25,0.8],[1.8,-0.25,0.8]] as [number,number,number][]).map((p,i) => (
-        <mesh key={i} position={p}><boxGeometry args={[0.08,0.5,0.08]} /><meshStandardMaterial color="#111" metalness={0.5} /></mesh>
-      ))}
-      {/* Mission control screen */}
-      <mesh position={[0,1.0,-2.0]}><boxGeometry args={[3.6,1.2,0.06]} /><meshStandardMaterial color="#0a0a0a" metalness={0.8} /></mesh>
-      <mesh position={[0,1.0,-1.95]}>
-        <planeGeometry args={[3.4,1.0]} />
-        <meshStandardMaterial ref={screenRef} color="#001a33" emissive="#0055aa" emissiveIntensity={0.65} />
-      </mesh>
-      <Text position={[0,1.06,-1.92]} fontSize={0.18} color="#22aaff" anchorX="center" outlineWidth={0.01} outlineColor="#000200">MISSION CONTROL</Text>
-      {/* Subtle grid lines on screen */}
-      {([-1.0,-0.33,0.33,1.0] as number[]).map((x,i) => (
-        <mesh key={i} position={[x,1.0,-1.92]}><boxGeometry args={[0.01,0.88,0.005]} /><meshStandardMaterial color="#0088ff" emissive="#0088ff" emissiveIntensity={0.35} /></mesh>
-      ))}
-      {/* 8 chairs around table */}
-      {chairAngles.map((angle,i) => {
-        const ex = Math.sin(angle)*2.5, ez = Math.cos(angle)*1.4;
-        return (
-          <group key={i} position={[ex,0,ez]} rotation={[0,angle+Math.PI,0]}>
-            <mesh position={[0,0.28,0]}><boxGeometry args={[0.38,0.05,0.38]} /><meshStandardMaterial color="#200505" roughness={0.8} /></mesh>
-            <mesh position={[0,0.55,0.18]}><boxGeometry args={[0.38,0.5,0.05]} /><meshStandardMaterial color="#200505" roughness={0.8} /></mesh>
-          </group>
-        );
-      })}
-      <pointLight position={[0,2.5,0]} color="#ff2200" intensity={2} distance={7} decay={2} />
-      <pointLight position={[0,2.5,0]} color="#ff8800" intensity={0.8} distance={9} decay={2} />
-      <Text position={[0,2.4,0]} fontSize={0.24} color="#ff4422" anchorX="center" outlineWidth={0.016} outlineColor="#000">⚡ War Room</Text>
-    </group>
-  );
-}
-
-// ─── Rooftop Vibe Area ────────────────────────────────────────────────────────
-function RooftopVibe({ position }: { position: [number,number,number] }) {
-  const lightRef = useRef<THREE.PointLight>(null);
-  useFrame(({ clock }) => {
-    if (lightRef.current) lightRef.current.intensity = 1.2 + Math.sin(clock.elapsedTime * 0.7) * 0.4;
-  });
-  const stringLights: [number,number,number][] = Array.from(
-    {length:10}, (_,i) => [(i-4.5)*0.72, 2.4, 0] as [number,number,number]
-  );
-  const loungeColors = ['#3d1a5e','#1a3d5e','#3d3a1a'];
-  return (
-    <group position={position}>
-      {/* Floor mat */}
-      <mesh position={[0,0.01,0]}>
-        <boxGeometry args={[4,0.02,4]} />
-        <meshStandardMaterial color="#1a1a3e" roughness={0.8} />
-      </mesh>
-      {/* Lounge chairs */}
-      {([-1.8, 0, 1.8] as number[]).map((x, i) => (
-        <group key={i} position={[x,0.1,-0.4]}>
-          {/* Seat */}
-          <mesh position={[0,0.22,0]}><boxGeometry args={[0.6,0.4,0.7]} /><meshStandardMaterial color={loungeColors[i]} roughness={0.9} /></mesh>
-          {/* Back */}
-          <mesh position={[0,0.4,0.34]}><boxGeometry args={[0.58,0.36,0.08]} /><meshStandardMaterial color={loungeColors[i]} roughness={0.9} /></mesh>
-        </group>
-      ))}
-      {/* String lights */}
-      {stringLights.map((p, i) => (
-        <mesh key={i} position={p}>
-          <sphereGeometry args={[0.055,6,6]} />
-          <meshStandardMaterial color="#fffde7" emissive="#fffde7" emissiveIntensity={2.5} />
-        </mesh>
-      ))}
-      {/* String light wire */}
-      <mesh position={[0,2.4,0]} rotation={[0,0,Math.PI/2]}>
-        <cylinderGeometry args={[0.005,0.005,6.6,4]} />
-        <meshStandardMaterial color="#333" />
-      </mesh>
-      {/* Telescope */}
-      <group position={[1.6,0.1,1.2]}>
-        <mesh position={[-0.18,0.3,0.1]} rotation={[0.25,0,-0.28]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
-        <mesh position={[0.18,0.3,0.1]} rotation={[0.25,0,0.28]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
-        <mesh position={[0,0.3,-0.18]} rotation={[-0.28,0,0]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
-        <mesh position={[0,0.72,0]} rotation={[Math.PI/6,0,0]}><cylinderGeometry args={[0.06,0.05,0.7,8]} /><meshStandardMaterial color="#1a1a1a" metalness={0.8} /></mesh>
-        <mesh position={[0,0.52,0.2]} rotation={[Math.PI/6,0,0]}><cylinderGeometry args={[0.04,0.04,0.14,8]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
-      </group>
-      <pointLight ref={lightRef} position={[0,2.5,0]} color="#8844ff" intensity={1.5} distance={7} decay={2} />
-      <pointLight position={[0,2.5,0]} color="#4488ff" intensity={0.7} distance={9} decay={2} />
-      <Text position={[0,2.4,0]} fontSize={0.24} color="#c084fc" anchorX="center" outlineWidth={0.016} outlineColor="#000">🌙 Rooftop</Text>
     </group>
   );
 }
@@ -915,7 +694,7 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
 
       {/* Floor */}
       <mesh position={[0,-0.05,0]} rotation={[-Math.PI/2,0,0]} receiveShadow>
-        <planeGeometry args={[30,42]} />
+        <planeGeometry args={[28,22]} />
         <meshStandardMaterial map={parquet} roughness={0.5} metalness={0.1} />
       </mesh>
 
@@ -975,10 +754,6 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
       <MeetingRoom position={[-9,0,-3]} />
       <ChillLounge position={[9,0,-3]} />
       <BilliardTable position={[0,0,7]} />
-      <GymArea position={[-8,0,11]} />
-      <KitchenCafe position={[8,0,11]} />
-      <WarRoom position={[0,0,13]} />
-      <RooftopVibe position={[0,0.05,15]} />
 
       {/* Plants */}
       {([[-11,0,8],[11,0,8],[-11,0,-8],[11,0,-8],[0,0,-9],[-6,0,-9],[6,0,-9]] as [number,number,number][]).map((p,i) => (
