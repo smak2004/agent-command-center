@@ -322,19 +322,19 @@ function GymArea({ position }: { position: [number,number,number] }) {
       </group>
       {/* Punching bag — swings on useFrame */}
       <group ref={bagRef} position={[0,0,-1.6]}>
-        <mesh position={[0,2.65,0]}><cylinderGeometry args={[0.02,0.02,0.48,6]} /><meshStandardMaterial color="#777" metalness={0.9} /></mesh>
-        <mesh position={[0,2.2,0]}><cylinderGeometry args={[0.17,0.14,0.7,10]} /><meshStandardMaterial color="#8b0000" roughness={0.7} /></mesh>
-        <mesh position={[0,2.53,0]}><sphereGeometry args={[0.17,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
-        <mesh position={[0,1.85,0]}><sphereGeometry args={[0.14,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
+        <mesh position={[0,2.0,0]}><cylinderGeometry args={[0.02,0.02,0.3,6]} /><meshStandardMaterial color="#777" metalness={0.9} /></mesh>
+        <mesh position={[0,1.75,0]}><cylinderGeometry args={[0.17,0.14,0.7,10]} /><meshStandardMaterial color="#8b0000" roughness={0.7} /></mesh>
+        <mesh position={[0,2.1,0]}><sphereGeometry args={[0.17,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
+        <mesh position={[0,1.4,0]}><sphereGeometry args={[0.14,8,6]} /><meshStandardMaterial color="#6b0000" roughness={0.8} /></mesh>
       </group>
       {/* Ceiling mount for bag */}
-      <mesh position={[0,2.9,-1.6]}><boxGeometry args={[0.16,0.08,0.16]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
+      <mesh position={[0,2.2,-1.6]}><boxGeometry args={[0.16,0.08,0.16]} /><meshStandardMaterial color="#555" metalness={0.8} /></mesh>
       {/* Pull-up bar */}
-      <mesh position={[0,2.88,0.6]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[0.025,0.025,1.5,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <mesh position={[-0.75,2.64,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <mesh position={[0.75,2.64,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
-      <pointLight position={[0,3,0]} color="#ff8822" intensity={1.5} distance={6} decay={2} />
-      <Text position={[0,3.6,0]} fontSize={0.24} color="#fb923c" anchorX="center" outlineWidth={0.016} outlineColor="#000">🏋️ Gym</Text>
+      <mesh position={[0,2.4,0.6]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[0.025,0.025,1.5,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
+      <mesh position={[-0.75,2.16,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
+      <mesh position={[0.75,2.16,0.6]}><cylinderGeometry args={[0.025,0.025,0.48,8]} /><meshStandardMaterial color="#666" metalness={0.9} /></mesh>
+      <pointLight position={[0,2.5,0]} color="#ff8822" intensity={1.5} distance={6} decay={2} />
+      <Text position={[0,2.4,0]} fontSize={0.24} color="#fb923c" anchorX="center" outlineWidth={0.016} outlineColor="#000">🏋️ Gym</Text>
     </group>
   );
 }
@@ -407,15 +407,15 @@ function WarRoom({ position }: { position: [number,number,number] }) {
         <mesh key={i} position={p}><boxGeometry args={[0.08,0.5,0.08]} /><meshStandardMaterial color="#111" metalness={0.5} /></mesh>
       ))}
       {/* Mission control screen */}
-      <mesh position={[0,1.6,-2.3]}><boxGeometry args={[3.6,1.2,0.06]} /><meshStandardMaterial color="#0a0a0a" metalness={0.8} /></mesh>
-      <mesh position={[0,1.6,-2.25]}>
+      <mesh position={[0,1.0,-2.0]}><boxGeometry args={[3.6,1.2,0.06]} /><meshStandardMaterial color="#0a0a0a" metalness={0.8} /></mesh>
+      <mesh position={[0,1.0,-1.95]}>
         <planeGeometry args={[3.4,1.0]} />
         <meshStandardMaterial ref={screenRef} color="#001a33" emissive="#0055aa" emissiveIntensity={0.65} />
       </mesh>
-      <Text position={[0,1.72,-2.2]} fontSize={0.18} color="#22aaff" anchorX="center" outlineWidth={0.01} outlineColor="#000200">MISSION CONTROL</Text>
+      <Text position={[0,1.06,-1.92]} fontSize={0.18} color="#22aaff" anchorX="center" outlineWidth={0.01} outlineColor="#000200">MISSION CONTROL</Text>
       {/* Subtle grid lines on screen */}
       {([-1.0,-0.33,0.33,1.0] as number[]).map((x,i) => (
-        <mesh key={i} position={[x,1.6,-2.22]}><boxGeometry args={[0.01,0.88,0.005]} /><meshStandardMaterial color="#0088ff" emissive="#0088ff" emissiveIntensity={0.35} /></mesh>
+        <mesh key={i} position={[x,1.0,-1.92]}><boxGeometry args={[0.01,0.88,0.005]} /><meshStandardMaterial color="#0088ff" emissive="#0088ff" emissiveIntensity={0.35} /></mesh>
       ))}
       {/* 8 chairs around table */}
       {chairAngles.map((angle,i) => {
@@ -427,9 +427,9 @@ function WarRoom({ position }: { position: [number,number,number] }) {
           </group>
         );
       })}
-      <pointLight position={[0,3,0]} color="#ff2200" intensity={2} distance={7} decay={2} />
-      <pointLight position={[0,3,0]} color="#ff8800" intensity={0.8} distance={9} decay={2} />
-      <Text position={[0,2.9,0]} fontSize={0.24} color="#ff4422" anchorX="center" outlineWidth={0.016} outlineColor="#000">⚡ War Room</Text>
+      <pointLight position={[0,2.5,0]} color="#ff2200" intensity={2} distance={7} decay={2} />
+      <pointLight position={[0,2.5,0]} color="#ff8800" intensity={0.8} distance={9} decay={2} />
+      <Text position={[0,2.4,0]} fontSize={0.24} color="#ff4422" anchorX="center" outlineWidth={0.016} outlineColor="#000">⚡ War Room</Text>
     </group>
   );
 }
@@ -441,20 +441,15 @@ function RooftopVibe({ position }: { position: [number,number,number] }) {
     if (lightRef.current) lightRef.current.intensity = 1.2 + Math.sin(clock.elapsedTime * 0.7) * 0.4;
   });
   const stringLights: [number,number,number][] = Array.from(
-    {length:10}, (_,i) => [(i-4.5)*0.72, 2.8, 0] as [number,number,number]
+    {length:10}, (_,i) => [(i-4.5)*0.72, 2.4, 0] as [number,number,number]
   );
   const loungeColors = ['#3d1a5e','#1a3d5e','#3d3a1a'];
   return (
     <group position={position}>
-      {/* Small decorative floor mat */}
-      <mesh position={[0,0.01,0]} rotation={[-Math.PI/2,0,0]}>
-        <planeGeometry args={[3,3]} />
-        <meshStandardMaterial color="#1a1030" roughness={0.8} />
-      </mesh>
-      {/* Edge glow strip — contained ring */}
-      <mesh position={[0,0.02,0]} rotation={[-Math.PI/2,0,0]}>
-        <ringGeometry args={[1.35,1.55,32]} />
-        <meshStandardMaterial color="#8844ff" emissive="#8844ff" emissiveIntensity={0.4} transparent opacity={0.5} side={THREE.DoubleSide} />
+      {/* Floor mat */}
+      <mesh position={[0,0.01,0]}>
+        <boxGeometry args={[4,0.02,4]} />
+        <meshStandardMaterial color="#1a1a3e" roughness={0.8} />
       </mesh>
       {/* Lounge chairs */}
       {([-1.8, 0, 1.8] as number[]).map((x, i) => (
@@ -473,21 +468,21 @@ function RooftopVibe({ position }: { position: [number,number,number] }) {
         </mesh>
       ))}
       {/* String light wire */}
-      <mesh position={[0,2.8,0]} rotation={[0,0,Math.PI/2]}>
+      <mesh position={[0,2.4,0]} rotation={[0,0,Math.PI/2]}>
         <cylinderGeometry args={[0.005,0.005,6.6,4]} />
         <meshStandardMaterial color="#333" />
       </mesh>
       {/* Telescope */}
-      <group position={[2.0,0.1,1.5]}>
+      <group position={[1.6,0.1,1.2]}>
         <mesh position={[-0.18,0.3,0.1]} rotation={[0.25,0,-0.28]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
         <mesh position={[0.18,0.3,0.1]} rotation={[0.25,0,0.28]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
         <mesh position={[0,0.3,-0.18]} rotation={[-0.28,0,0]}><cylinderGeometry args={[0.014,0.014,0.72,6]} /><meshStandardMaterial color="#555" metalness={0.7} /></mesh>
         <mesh position={[0,0.72,0]} rotation={[Math.PI/6,0,0]}><cylinderGeometry args={[0.06,0.05,0.7,8]} /><meshStandardMaterial color="#1a1a1a" metalness={0.8} /></mesh>
         <mesh position={[0,0.52,0.2]} rotation={[Math.PI/6,0,0]}><cylinderGeometry args={[0.04,0.04,0.14,8]} /><meshStandardMaterial color="#2a2a2a" metalness={0.7} /></mesh>
       </group>
-      <pointLight ref={lightRef} position={[0,3,0]} color="#8844ff" intensity={1.5} distance={7} decay={2} />
-      <pointLight position={[0,3,0]} color="#4488ff" intensity={0.7} distance={9} decay={2} />
-      <Text position={[0,3.5,0]} fontSize={0.24} color="#c084fc" anchorX="center" outlineWidth={0.016} outlineColor="#000">🌙 Rooftop</Text>
+      <pointLight ref={lightRef} position={[0,2.5,0]} color="#8844ff" intensity={1.5} distance={7} decay={2} />
+      <pointLight position={[0,2.5,0]} color="#4488ff" intensity={0.7} distance={9} decay={2} />
+      <Text position={[0,2.4,0]} fontSize={0.24} color="#c084fc" anchorX="center" outlineWidth={0.016} outlineColor="#000">🌙 Rooftop</Text>
     </group>
   );
 }
@@ -983,7 +978,7 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
       <GymArea position={[-8,0,11]} />
       <KitchenCafe position={[8,0,11]} />
       <WarRoom position={[0,0,13]} />
-      <RooftopVibe position={[0,0.05,17]} />
+      <RooftopVibe position={[0,0.05,15]} />
 
       {/* Plants */}
       {([[-11,0,8],[11,0,8],[-11,0,-8],[11,0,-8],[0,0,-9],[-6,0,-9],[6,0,-9]] as [number,number,number][]).map((p,i) => (
