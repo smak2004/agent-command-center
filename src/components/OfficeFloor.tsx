@@ -592,6 +592,8 @@ const DESK_POSITIONS: Record<string, [number,number,number]> = {
   'pho-creative':      [-3,   0,  3.5 ],
   'pho-distribution':  [ 0,   0,  3.5 ],
   'pho-growth':        [ 3,   0,  3.5 ],
+  'omar':              [-4.5, 0,  7   ],
+  'sophie':            [ 4.5, 0,  7   ],
 };
 
 const ENERGY_LINES: [[number,number,number],[number,number,number]][] = [
