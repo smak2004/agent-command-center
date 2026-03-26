@@ -1,9 +1,10 @@
-import { Suspense, useState, useRef, useMemo } from 'react';
+import { Suspense, useState, useRef, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAgents, useChat, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
 import { ChatPanel } from './ChatPanel';
+import { PipelinePanel } from './PipelinePanel';
 
 // ─── Character definitions ────────────────────────────────────────────────────
 interface CharDef {
@@ -651,8 +652,33 @@ function Particles() {
   );
 }
 
+// ─── Pipeline active indicator ────────────────────────────────────────────────
+function PipelineActiveIndicator({ active }: { active: boolean }) {
+  const ringRef  = useRef<THREE.Mesh>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const pulse = 0.5 + Math.sin(t * 2.2) * 0.5;
+    if (ringRef.current) {
+      (ringRef.current.material as THREE.MeshStandardMaterial).opacity = active ? 0.06 + pulse * 0.12 : 0;
+    }
+    if (lightRef.current) {
+      lightRef.current.intensity = active ? 1.5 + pulse * 2 : 0;
+    }
+  });
+  return (
+    <group>
+      <mesh ref={ringRef} position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[4.5, 6.5, 64]} />
+        <meshStandardMaterial color="#22d3ee" emissive="#22d3ee" emissiveIntensity={2} transparent opacity={0} side={THREE.DoubleSide} />
+      </mesh>
+      <pointLight ref={lightRef} position={[0, 3, 0]} color="#22d3ee" intensity={0} distance={14} decay={2} />
+    </group>
+  );
+}
+
 // ─── Scene ────────────────────────────────────────────────────────────────────
-function Scene({ agents, statuses, selectedAgent, onSelectAgent }: any) {
+function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive }: any) {
   const parquet = useParquetTexture();
   const jarvisWorking = statuses['claude'] === 'working';
 
@@ -711,6 +737,9 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent }: any) {
         <CeilingLight key={i} position={[x,3.2,z]} />
       ))}
 
+      {/* Pipeline active glow ring */}
+      <PipelineActiveIndicator active={pipelineActive} />
+
       {/* Particles */}
       <Particles />
 
@@ -761,6 +790,27 @@ export function OfficeFloor() {
   const [showSettings, setShowSettings] = useState(false);
   const [urlInput, setUrlInput] = useState(getBackendUrl());
 
+  // Pipeline state
+  const [pipelineActive, setPipelineActive] = useState(false);
+  const [pipelineAgentWork, setPipelineAgentWork] = useState<Record<string, 'working' | 'idle'>>({});
+
+  // Merge backend statuses with pipeline-driven working states
+  const mergedStatuses = useMemo(() => {
+    const merged = { ...statuses };
+    Object.entries(pipelineAgentWork).forEach(([id, state]) => {
+      if (state === 'working') merged[id] = 'working';
+    });
+    return merged;
+  }, [statuses, pipelineAgentWork]);
+
+  const handleAgentWorkingChange = useCallback((s: Record<string, 'working' | 'idle'>) => {
+    setPipelineAgentWork(s);
+  }, []);
+
+  const handlePipelineActiveChange = useCallback((active: boolean) => {
+    setPipelineActive(active);
+  }, []);
+
   return (
     <div style={{ width:'100vw', height:'100vh', background:'#0a0a0a', color:'white', fontFamily:'sans-serif', display:'flex', flexDirection:'column' }}>
       <div style={{ padding:'12px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
@@ -775,8 +825,13 @@ export function OfficeFloor() {
             {connected ? 'Live' : 'Demo'}
           </span>
           <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)' }}>
-            {Object.values(statuses).filter(s=>s!=='idle').length} working · {agents.length} agents
+            {Object.values(mergedStatuses).filter(s=>s!=='idle').length} working · {agents.length} agents
           </span>
+          <PipelinePanel
+            onAgentWorkingChange={handleAgentWorkingChange}
+            onPipelineActiveChange={handlePipelineActiveChange}
+            pipelineActive={pipelineActive}
+          />
           <button onClick={()=>setShowSettings(s=>!s)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.6)', borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:12 }}>
             ⚙ Settings
           </button>
@@ -805,7 +860,7 @@ export function OfficeFloor() {
           <Canvas camera={{ position:[18,18,18], fov:45 }} style={{ width:'100%', height:'100%', display:'block' }} shadows
             onCreated={({ gl })=>{ gl.setClearColor('#0a0a0a'); gl.shadowMap.enabled=true; gl.shadowMap.type=THREE.PCFSoftShadowMap; }}>
             <Suspense fallback={null}>
-              <Scene agents={agents} statuses={statuses} selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} />
+              <Scene agents={agents} statuses={mergedStatuses} selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} pipelineActive={pipelineActive} />
             </Suspense>
           </Canvas>
         )}
