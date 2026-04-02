@@ -1,4 +1,5 @@
 import { Suspense, useState, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -594,6 +595,8 @@ const DESK_POSITIONS: Record<string, [number,number,number]> = {
   'pho-growth':        [ 3,   0,  3.5 ],
   'omar':              [-4.5, 0,  7   ],
   'sophie':            [ 4.5, 0,  7   ],
+  'levi':              [ 1.5, 0,  7   ],
+  'cipher':            [-1.5, 0,  7   ],
 };
 
 const ENERGY_LINES: [[number,number,number],[number,number,number]][] = [
@@ -791,6 +794,7 @@ export function OfficeFloor() {
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [urlInput, setUrlInput] = useState(getBackendUrl());
+  const navigate = useNavigate();
 
   // Pipeline state
   const [pipelineActive, setPipelineActive] = useState(false);
@@ -834,6 +838,11 @@ export function OfficeFloor() {
             onPipelineActiveChange={handlePipelineActiveChange}
             pipelineActive={pipelineActive}
           />
+          <button
+            onClick={() => navigate('/pipeline')}
+            style={{ background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.25)', color:'#f59e0b', borderRadius:8, padding:'5px 12px', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:5 }}>
+            📊 PHO Pipeline
+          </button>
           <button onClick={()=>setShowSettings(s=>!s)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.6)', borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:12 }}>
             ⚙ Settings
           </button>
