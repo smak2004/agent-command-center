@@ -463,7 +463,7 @@ function AgentFigure({
       </group>
 
       {/* Moving agent figure */}
-      <group ref={groupRef} scale={[scale,scale,scale]}>
+      <group ref={groupRef} scale={[scale,scale,scale]} onClick={(e)=>{e.stopPropagation();onClick()}} onPointerOver={()=>{document.body.style.cursor='pointer'}} onPointerOut={()=>{document.body.style.cursor='auto'}}>
         <group ref={bodyRef}>
           {/* ── Head ── */}
           <group ref={headRef} position={[0,0.72,0]}>

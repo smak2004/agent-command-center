@@ -517,8 +517,12 @@ export default function Pipeline() {
     }
   }, [fetchClients]);
 
-  const needsAction = clients.filter(c => c.pipeline.approval.status === 'needs_action' || c.pipeline.vance.recommendation === 'approve' && c.pipeline.approval.status !== 'complete');
-  const inProgress  = clients.filter(c => ['cipher', 'manus', 'vance'].includes(c.current_stage));
+  const needsAction = clients.filter(c =>
+    c.pipeline.approval.status === 'needs_action' ||
+    (c.pipeline.vance.recommendation === 'approve' && c.pipeline.approval.status !== 'complete')
+  );
+  const needsActionIds = new Set(needsAction.map(c => c.client.id));
+  const inProgress  = clients.filter(c => ['cipher', 'manus', 'vance'].includes(c.current_stage) && !needsActionIds.has(c.client.id));
   const completed   = clients.filter(c => c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'complete');
 
   return (
