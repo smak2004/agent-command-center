@@ -284,8 +284,12 @@ function ActionButtons({
   const [showReviseInput, setShowReviseInput] = useState(false);
   const [reviseNotes, setReviseNotes] = useState('');
 
-  const canApprove = client.pipeline.vance.recommendation === 'approve' &&
-                     client.pipeline.approval.status !== 'complete';
+  const canApprove = client.pipeline.vance.status === 'complete' &&
+                     client.pipeline.approval.status !== 'complete' &&
+                     client.pipeline.vance.recommendation === 'approve';
+  const canOverrideApprove = client.pipeline.vance.status === 'complete' &&
+                             client.pipeline.approval.status !== 'complete' &&
+                             client.pipeline.vance.recommendation !== 'approve';
   const canRevise  = client.pipeline.vance.status === 'complete' &&
                      client.pipeline.approval.status !== 'complete';
   const hasBlueprintPdf    = !!client.pipeline.manus.files?.blueprint_pdf;
@@ -306,6 +310,23 @@ function ActionButtons({
           }}>
           {loading ? '...' : '✓ Approve Blueprint'}
         </button>
+      )}
+
+      {canOverrideApprove && !showReviseInput && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <button
+            onClick={() => onApprove(client.client.id)}
+            disabled={loading}
+            style={{
+              padding: '6px 14px', borderRadius: 7, border: '1px solid #F59E0B',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              background: loading ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.18)', color: '#F59E0B',
+              fontWeight: 700, fontSize: 12, opacity: loading ? 0.6 : 1, transition: 'all 0.15s',
+            }}>
+            {loading ? '...' : '⚠️ Approve Anyway'}
+          </button>
+          <span style={{ fontSize: 10, color: 'rgba(245,158,11,0.7)', paddingLeft: 2 }}>Vance recommends revision</span>
+        </div>
       )}
 
       {canRevise && !showReviseInput && (

@@ -47,7 +47,7 @@ export function PipelinePanel({ onAgentWorkingChange, onPipelineActiveChange, pi
             animation: 'pho-pulse 1.6s ease-in-out infinite',
           }} />
         )}
-        + New Client
+        📊 PHO Pipeline
       </button>
 
       {/* CSS keyframe for pulse animation */}
