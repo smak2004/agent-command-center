@@ -6,7 +6,7 @@ const NGROK_HEADERS = { 'ngrok-skip-browser-warning': '1' };
 export function getBackendUrl(): string {
   return localStorage.getItem(LS_KEY)
     || import.meta.env.VITE_BACKEND_URL
-    || 'http://localhost:3001';
+    || '';
 }
 
 export function setBackendUrl(url: string) {
