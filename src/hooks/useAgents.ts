@@ -155,3 +155,33 @@ export function useChat() {
 
   return { sendMessage, getMessages, sending };
 }
+
+export interface AgentStatEntry {
+  messages: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  totalTokens: number;
+  costUsd: number;
+}
+
+export function useStats() {
+  const [stats, setStats] = useState<Record<string, AgentStatEntry>>({});
+
+  useEffect(() => {
+    const fetchStats = () => {
+      fetch(`${getBackendUrl()}/agents/stats`, { headers: NGROK_HEADERS })
+        .then(r => r.json())
+        .then(data => {
+          if (data.stats) setStats(data.stats);
+        })
+        .catch(() => {}); // Silently ignore — stats are non-critical
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 30_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return stats;
+}

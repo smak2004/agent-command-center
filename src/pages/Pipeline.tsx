@@ -397,6 +397,10 @@ function ClientCard({
   actionLoading: string | null;
 }) {
   const approvalStatus = client.pipeline.approval.status;
+  // Derive badge color from the current active stage's status, not always approval
+  const currentStageStatus = (
+    client.pipeline[client.current_stage as keyof typeof client.pipeline] as { status: StageStatus } | undefined
+  )?.status ?? 'waiting';
 
   return (
     <div style={{
@@ -417,9 +421,9 @@ function ClientCard({
         <div style={{ textAlign: 'right' }}>
           <div style={{
             fontSize: 10, padding: '3px 9px', borderRadius: 99, fontWeight: 600,
-            background: statusBg(approvalStatus),
-            color: statusColor(approvalStatus),
-            border: `1px solid ${statusColor(approvalStatus)}22`,
+            background: statusBg(currentStageStatus),
+            color: statusColor(currentStageStatus),
+            border: `1px solid ${statusColor(currentStageStatus)}22`,
           }}>
             {client.current_stage.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
           </div>
@@ -531,10 +535,8 @@ export default function Pipeline() {
     (c.pipeline.vance.recommendation === 'approve' && c.pipeline.approval.status !== 'complete')
   );
   const needsActionIds = new Set(needsAction.map(c => c.client.id));
-  // Issue #27: include client_summary when in_progress so it doesn't fall into the unlabeled "All Projects" bucket
   const inProgress  = clients.filter(c =>
-    (['cipher', 'manus', 'vance', 'client_summary'].includes(c.current_stage) ||
-     (c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'in_progress')) &&
+    ['cipher', 'manus', 'vance', 'approval', 'client_summary'].includes(c.current_stage) &&
     !needsActionIds.has(c.client.id)
   );
   const completed   = clients.filter(c => c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'complete');

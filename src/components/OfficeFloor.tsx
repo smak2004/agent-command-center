@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { useAgents, useChat, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
+import { useAgents, useChat, useStats, getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
 import { ChatPanel } from './ChatPanel';
 import { PipelinePanel } from './PipelinePanel';
 
@@ -264,11 +264,12 @@ function ChillLounge({ position }: { position: [number,number,number] }) {
 
 // ─── Agent figure with full state machine ─────────────────────────────────────
 function AgentFigure({
-  agent, backendStatus, deskPosition, isSelected, isMain, onClick
+  agent, backendStatus, deskPosition, isSelected, isMain, onClick, costUsd
 }: {
   agent: any; backendStatus: string;
   deskPosition: [number,number,number];
   isSelected: boolean; isMain: boolean; onClick: () => void;
+  costUsd?: number;
 }) {
   const char = CHARACTERS[agent.id] || DEFAULT_CHAR;
   const groupRef   = useRef<THREE.Group>(null);
@@ -452,6 +453,12 @@ function AgentFigure({
         <Text position={[0,0.1,0.9]} rotation={[-Math.PI/2,0,Math.PI]} fontSize={0.18} color={isSelected?'#F59E0B':'#ffffff'} anchorX="center" maxWidth={2} outlineWidth={0.02} outlineColor="#000000">
           {agent.emoji} {agent.displayName}
         </Text>
+        {/* Cost badge — shows agent's estimated spend */}
+        {costUsd !== undefined && (
+          <Text position={[0,0.1,1.12]} rotation={[-Math.PI/2,0,Math.PI]} fontSize={0.12} color="#4ade80" anchorX="center" outlineWidth={0.015} outlineColor="#000000">
+            ${costUsd.toFixed(3)}
+          </Text>
+        )}
         {/* Chair */}
         <mesh position={[0,0.52,0.36]}><boxGeometry args={[0.32,0.38,0.05]} /><meshStandardMaterial color="#0f172a" roughness={0.9} /></mesh>
         <mesh position={[0,0.3,0.22]}><boxGeometry args={[0.32,0.05,0.3]} /><meshStandardMaterial color="#0f172a" roughness={0.9} /></mesh>
@@ -675,7 +682,7 @@ function PipelineActiveIndicator({ active }: { active: boolean }) {
 }
 
 // ─── Scene ────────────────────────────────────────────────────────────────────
-function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive }: any) {
+function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive, agentStats }: any) {
   const parquet = useParquetTexture();
   const jarvisWorking = statuses['claude'] === 'working';
 
@@ -765,6 +772,7 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
           isMain={agent.isDefault || agent.id === 'claude'}
           isSelected={selectedAgent?.id === agent.id}
           onClick={() => onSelectAgent(agent)}
+          costUsd={agentStats[agent.id]?.costUsd}
         />
       ))}
 
@@ -783,6 +791,7 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
 export function OfficeFloor() {
   const { agents, statuses, loading, connected } = useAgents();
   const { sendMessage, getMessages, sending } = useChat();
+  const agentStats = useStats();
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [urlInput, setUrlInput] = useState(getBackendUrl());
@@ -863,7 +872,7 @@ export function OfficeFloor() {
           <Canvas camera={{ position:[18,18,18], fov:45 }} style={{ width:'100%', height:'100%', display:'block' }} shadows
             onCreated={({ gl })=>{ gl.setClearColor('#0a0a0a'); gl.shadowMap.enabled=true; gl.shadowMap.type=THREE.PCFSoftShadowMap; }}>
             <Suspense fallback={null}>
-              <Scene agents={agents} statuses={mergedStatuses} selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} pipelineActive={pipelineActive} />
+              <Scene agents={agents} statuses={mergedStatuses} selectedAgent={selectedAgent} onSelectAgent={setSelectedAgent} pipelineActive={pipelineActive} agentStats={agentStats} />
             </Suspense>
           </Canvas>
         )}
