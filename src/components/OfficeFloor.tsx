@@ -597,6 +597,7 @@ const DESK_POSITIONS: Record<string, [number,number,number]> = {
   'sophie':            [ 4.5, 0,  7   ],
   'levi':              [ 1.5, 0,  7   ],
   'cipher':            [-1.5, 0,  7   ],
+  'bolt':              [ 3,   0, -3   ],
 };
 
 const ENERGY_LINES: [[number,number,number],[number,number,number]][] = [
