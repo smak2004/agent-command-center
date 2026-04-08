@@ -21,40 +21,35 @@ const CHARACTERS: Record<string, CharDef> = {
     outfit: '#111111', outfitAccent: '#F59E0B', pants: '#1a1a1a', shoes: '#0a0a0a',
     accessory: 'none', accessoryColor: '#F59E0B',
   },
-  'pho-research': {
-    skin: '#f0c8a0', hair: '#2d1a0a', hairStyle: 'short',
-    outfit: '#1e3a5f', outfitAccent: '#3b82f6', pants: '#1e2a3a', shoes: '#111',
-    accessory: 'glasses', accessoryColor: '#888',
+  cipher: {
+    skin: '#c0b090', hair: '#1a1a2e', hairStyle: 'short',
+    outfit: '#0d1117', outfitAccent: '#22d3ee', pants: '#0a0a14', shoes: '#0a0a0a',
+    accessory: 'glasses', accessoryColor: '#22d3ee',
   },
-  'pho-concept': {
-    skin: '#c8a882', hair: '#8b4513', hairStyle: 'long',
-    outfit: '#2d4a1e', outfitAccent: '#4ade80', pants: '#1a2a12', shoes: '#2d1a0a',
-    accessory: 'none', accessoryColor: '#4ade80',
+  vance: {
+    skin: '#e8d0b0', hair: '#3a2a1a', hairStyle: 'short',
+    outfit: '#1a1a3e', outfitAccent: '#a78bfa', pants: '#0f0f2a', shoes: '#111',
+    accessory: 'none', accessoryColor: '#a78bfa',
   },
-  'pho-script': {
-    skin: '#e8b896', hair: '#1a1a1a', hairStyle: 'bun',
-    outfit: '#4a1e3a', outfitAccent: '#a855f7', pants: '#2a1228', shoes: '#111',
-    accessory: 'headphones', accessoryColor: '#a855f7',
+  omar: {
+    skin: '#c8906a', hair: '#1a0a00', hairStyle: 'short',
+    outfit: '#1e2a1e', outfitAccent: '#4ade80', pants: '#0a140a', shoes: '#111',
+    accessory: 'glasses', accessoryColor: '#4ade80',
   },
-  'pho-brand': {
-    skin: '#a0724a', hair: '#0a0a0a', hairStyle: 'short',
-    outfit: '#7f1d1d', outfitAccent: '#ef4444', pants: '#1c1010', shoes: '#0a0a0a',
-    accessory: 'tie', accessoryColor: '#ef4444',
+  sophie: {
+    skin: '#f0c8a0', hair: '#8b4513', hairStyle: 'long',
+    outfit: '#4a1e3a', outfitAccent: '#f472b6', pants: '#2a1228', shoes: '#1a0a12',
+    accessory: 'none', accessoryColor: '#f472b6',
   },
-  'pho-creative': {
-    skin: '#dba878', hair: '#d97706', hairStyle: 'long',
-    outfit: '#1e3a4a', outfitAccent: '#22d3ee', pants: '#0f2030', shoes: '#0a1520',
-    accessory: 'none', accessoryColor: '#22d3ee',
+  levi: {
+    skin: '#d4956a', hair: '#1a0a00', hairStyle: 'short',
+    outfit: '#1e2a3a', outfitAccent: '#60a5fa', pants: '#0f1a28', shoes: '#0a0a0a',
+    accessory: 'headphones', accessoryColor: '#60a5fa',
   },
-  'pho-distribution': {
-    skin: '#c8906a', hair: '#2d2d2d', hairStyle: 'short',
-    outfit: '#2d3a1e', outfitAccent: '#84cc16', pants: '#1a2010', shoes: '#111',
-    accessory: 'cap', accessoryColor: '#84cc16',
-  },
-  'pho-growth': {
-    skin: '#e8c8a8', hair: '#1a0a00', hairStyle: 'bald',
-    outfit: '#1e1e4a', outfitAccent: '#6366f1', pants: '#111128', shoes: '#0a0a14',
-    accessory: 'glasses', accessoryColor: '#6366f1',
+  bolt: {
+    skin: '#e8c890', hair: '#1a1a1a', hairStyle: 'short',
+    outfit: '#1a1a1a', outfitAccent: '#F59E0B', pants: '#111', shoes: '#0a0a0a',
+    accessory: 'none', accessoryColor: '#F59E0B',
   },
 };
 
@@ -160,7 +155,7 @@ function BilliardTable({ position }: { position: [number,number,number] }) {
       ))}
       {/* Balls */}
       {ballColors.map((color, i) => (
-        <mesh key={i} ref={i === 0 ? ballRef : i === 1 ? ball2Ref : undefined}
+        <mesh key={i} {...(i === 0 ? { ref: ballRef } : i === 1 ? { ref: ball2Ref } : {})}
           position={[(i % 4 - 1.5) * 0.22, 0.18, (Math.floor(i/4) - 0.5) * 0.22]}>
           <sphereGeometry args={[0.055, 10, 10]} />
           <meshStandardMaterial color={color} roughness={0.1} metalness={0.3} />
@@ -463,7 +458,7 @@ function AgentFigure({
       </group>
 
       {/* Moving agent figure */}
-      <group ref={groupRef} scale={[scale,scale,scale]} onClick={(e)=>{e.stopPropagation();onClick()}} onPointerOver={()=>{document.body.style.cursor='pointer'}} onPointerOut={()=>{document.body.style.cursor='auto'}}>
+      <group ref={groupRef} position={deskPosition} scale={[scale,scale,scale]} onClick={(e)=>{e.stopPropagation();onClick()}} onPointerOver={()=>{document.body.style.cursor='pointer'}} onPointerOut={()=>{document.body.style.cursor='auto'}}>
         <group ref={bodyRef}>
           {/* ── Head ── */}
           <group ref={headRef} position={[0,0.72,0]}>
@@ -585,26 +580,22 @@ function AgentFigure({
 
 // ─── Desk positions ───────────────────────────────────────────────────────────
 const DESK_POSITIONS: Record<string, [number,number,number]> = {
-  claude:              [ 0,   0, -3   ],
-  'pho-research':      [-4.5, 0,  0   ],
-  'pho-concept':       [-1.5, 0,  0   ],
-  'pho-script':        [ 1.5, 0,  0   ],
-  'pho-brand':         [ 4.5, 0,  0   ],
-  'pho-creative':      [-3,   0,  3.5 ],
-  'pho-distribution':  [ 0,   0,  3.5 ],
-  'pho-growth':        [ 3,   0,  3.5 ],
-  'omar':              [-4.5, 0,  7   ],
-  'sophie':            [ 4.5, 0,  7   ],
-  'levi':              [ 1.5, 0,  7   ],
-  'cipher':            [-1.5, 0,  7   ],
-  'bolt':              [ 3,   0, -3   ],
+  claude:   [ 0,   0, -3  ],
+  cipher:   [-3,   0, -3  ],
+  vance:    [ 3,   0,  0  ],
+  omar:     [-4.5, 0,  4  ],
+  sophie:   [ 4.5, 0,  4  ],
+  levi:     [ 1.5, 0,  4  ],
+  bolt:     [-1.5, 0,  4  ],
 };
 
 const ENERGY_LINES: [[number,number,number],[number,number,number]][] = [
-  [[0,0.5,-3],[-4.5,0.5,0  ]],[[0,0.5,-3],[-1.5,0.5,0  ]],
-  [[0,0.5,-3],[ 1.5,0.5,0  ]],[[0,0.5,-3],[ 4.5,0.5,0  ]],
-  [[0,0.5,-3],[-3,  0.5,3.5]],[[0,0.5,-3],[ 0,  0.5,3.5]],
-  [[0,0.5,-3],[ 3,  0.5,3.5]],
+  [[0,0.5,-3],[-3,  0.5,-3 ]],  // claude → cipher
+  [[0,0.5,-3],[ 3,  0.5, 0 ]],  // claude → vance
+  [[0,0.5,-3],[-4.5,0.5, 4 ]],  // claude → omar
+  [[0,0.5,-3],[ 4.5,0.5, 4 ]],  // claude → sophie
+  [[0,0.5,-3],[ 1.5,0.5, 4 ]],  // claude → levi
+  [[0,0.5,-3],[-1.5,0.5, 4 ]],  // claude → bolt
 ];
 
 // ─── Energy line ──────────────────────────────────────────────────────────────
@@ -764,14 +755,14 @@ function Scene({ agents, statuses, selectedAgent, onSelectAgent, pipelineActive 
         <FloorPlant key={i} position={p} />
       ))}
 
-      {/* Agent figures + desks */}
-      {agents.map((agent: any) => (
+      {/* Agent figures + desks — only render agents with known desk positions */}
+      {agents.filter((agent: any) => DESK_POSITIONS[agent.id] !== undefined).map((agent: any) => (
         <AgentFigure
           key={agent.id}
           agent={agent}
           backendStatus={statuses[agent.id] || 'idle'}
-          deskPosition={DESK_POSITIONS[agent.id] ?? [0,0,0]}
-          isMain={agent.isDefault}
+          deskPosition={DESK_POSITIONS[agent.id]}
+          isMain={agent.isDefault || agent.id === 'claude'}
           isSelected={selectedAgent?.id === agent.id}
           onClick={() => onSelectAgent(agent)}
         />
@@ -856,7 +847,7 @@ export function OfficeFloor() {
           <div style={{ display:'flex', gap:8 }}>
             <input value={urlInput} onChange={e=>setUrlInput(e.target.value)} placeholder="https://xxxx.ngrok-free.app"
               style={{ flex:1, background:'rgba(255,255,255,0.06)', border:'none', borderRadius:8, padding:'7px 10px', color:'white', fontSize:12, outline:'none' }} />
-            <button onClick={()=>setBackendUrl(urlInput)} style={{ background:'#F59E0B', border:'none', borderRadius:8, padding:'7px 12px', color:'black', fontWeight:700, fontSize:12, cursor:'pointer' }}>Save</button>
+            <button onClick={()=>{ setBackendUrl(urlInput); setShowSettings(false); }} style={{ background:'#F59E0B', border:'none', borderRadius:8, padding:'7px 12px', color:'black', fontWeight:700, fontSize:12, cursor:'pointer' }}>Save</button>
           </div>
           <div style={{ color:'rgba(255,255,255,0.2)', fontSize:10, marginTop:8 }}>Current: {getBackendUrl()}</div>
         </div>

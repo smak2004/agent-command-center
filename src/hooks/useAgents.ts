@@ -16,6 +16,7 @@ export function setBackendUrl(url: string) {
     localStorage.removeItem(LS_KEY);
   }
   // Trigger re-fetch by reloading
+  // Issue #15: Ideally replace with event-based re-fetch, but reload works for now
   window.location.reload();
 }
 
@@ -44,7 +45,8 @@ export function useAgents() {
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(false);
 
-  useEffect(() => {
+  // Issue #6: Fetch agents on mount AND every 30s for reconnection / refresh
+  const fetchAgents = useCallback(() => {
     fetch(`${getBackendUrl()}/agents`, { headers: NGROK_HEADERS })
       .then(r => r.json())
       .then(data => {
@@ -58,6 +60,15 @@ export function useAgents() {
       });
   }, []);
 
+  useEffect(() => {
+    fetchAgents();
+    // Periodic re-fetch every 30s for reconnection and new agent detection
+    const interval = setInterval(fetchAgents, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchAgents]);
+
+  // Issue #5: Removed `connected` from deps — interval must be set once on mount.
+  // connected state is tracked but should not cause interval recreation.
   useEffect(() => {
     const poll = () => {
       fetch(`${getBackendUrl()}/agents/status`, { headers: NGROK_HEADERS })
@@ -73,7 +84,7 @@ export function useAgents() {
     poll();
     const interval = setInterval(poll, 1500);
     return () => clearInterval(interval);
-  }, [agents, connected]);
+  }, []); // Empty deps: set once on mount, cleared on unmount
 
   return { agents, statuses, loading, connected };
 }
@@ -105,11 +116,14 @@ export function useChat() {
         body: JSON.stringify({ message, agentId }),
       });
       const data = await res.json();
+
+      // Issue #4: Check res.ok and guard data.response
+      if (!res.ok) throw new Error(data.error || 'Request failed');
       
       const agentMsg: ChatMessage = {
         id: `msg-${++idCounter.current}`,
         role: 'agent',
-        content: data.response,
+        content: data.response || data.error || 'No response received',
         timestamp: new Date(),
         agentId: data.agentId || agentId,
       };
@@ -118,11 +132,11 @@ export function useChat() {
         ...prev,
         [agentId]: [...(prev[agentId] || []), agentMsg],
       }));
-    } catch {
+    } catch (e: any) {
       const errMsg: ChatMessage = {
         id: `msg-${++idCounter.current}`,
         role: 'agent',
-        content: 'Connection error. Please try again.',
+        content: e?.message || 'Connection error. Please try again.',
         timestamp: new Date(),
         agentId,
       };

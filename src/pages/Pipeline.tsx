@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { getBackendUrl, setBackendUrl } from '@/hooks/useAgents';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -481,6 +482,14 @@ export default function Pipeline() {
     return () => clearInterval(interval);
   }, [fetchClients]);
 
+  // Issue #28: auto-dismiss actionError after 5 seconds
+  const setActionErrorWithTimeout = useCallback((msg: string | null) => {
+    setActionError(msg);
+    if (msg) {
+      setTimeout(() => setActionError(null), 5000);
+    }
+  }, []);
+
   const handleApprove = useCallback(async (id: string) => {
     setActionLoading(id);
     setActionError(null);
@@ -493,11 +502,11 @@ export default function Pipeline() {
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       await fetchClients();
     } catch (e: any) {
-      setActionError(e.message || 'Approve failed');
+      setActionErrorWithTimeout(e.message || 'Approve failed');
     } finally {
       setActionLoading(null);
     }
-  }, [fetchClients]);
+  }, [fetchClients, setActionErrorWithTimeout]);
 
   const handleRevise = useCallback(async (id: string, notes: string) => {
     setActionLoading(id);
@@ -511,18 +520,23 @@ export default function Pipeline() {
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       await fetchClients();
     } catch (e: any) {
-      setActionError(e.message || 'Revision request failed');
+      setActionErrorWithTimeout(e.message || 'Revision request failed');
     } finally {
       setActionLoading(null);
     }
-  }, [fetchClients]);
+  }, [fetchClients, setActionErrorWithTimeout]);
 
   const needsAction = clients.filter(c =>
     c.pipeline.approval.status === 'needs_action' ||
     (c.pipeline.vance.recommendation === 'approve' && c.pipeline.approval.status !== 'complete')
   );
   const needsActionIds = new Set(needsAction.map(c => c.client.id));
-  const inProgress  = clients.filter(c => ['cipher', 'manus', 'vance'].includes(c.current_stage) && !needsActionIds.has(c.client.id));
+  // Issue #27: include client_summary when in_progress so it doesn't fall into the unlabeled "All Projects" bucket
+  const inProgress  = clients.filter(c =>
+    (['cipher', 'manus', 'vance', 'client_summary'].includes(c.current_stage) ||
+     (c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'in_progress')) &&
+    !needsActionIds.has(c.client.id)
+  );
   const completed   = clients.filter(c => c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'complete');
 
   return (
@@ -531,10 +545,10 @@ export default function Pipeline() {
       {/* ── Nav bar ── */}
       <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <a href="/" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Link to="/" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ color: '#F59E0B', fontSize: 16 }}>⬡</span>
             <span style={{ fontWeight: 700, fontSize: 13, letterSpacing: '0.05em' }}>JARVIS HQ</span>
-          </a>
+          </Link>
           <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>›</span>
           <span style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>PHO Pipeline</span>
           {clients.length > 0 && (

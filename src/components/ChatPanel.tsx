@@ -30,7 +30,7 @@ export function ChatPanel({ agent, messages, sending, onSend, onClose }: ChatPan
   };
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
