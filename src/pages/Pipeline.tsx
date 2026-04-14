@@ -54,6 +54,13 @@ interface Flag {
 
 type StageStatus = 'waiting' | 'in_progress' | 'complete' | 'needs_action';
 
+interface VanceHistoryEntry {
+  score: number | null;
+  score_max: number;
+  recommendation: 'approve' | 'revise' | 'reject' | null;
+  completed_at: string | null;
+}
+
 interface ClientState {
   version: number;
   client: {
@@ -72,6 +79,7 @@ interface ClientState {
     approval: ApprovalStage;
     client_summary: ClientSummaryStage;
   };
+  vance_history?: VanceHistoryEntry[];
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -270,6 +278,50 @@ function VanceScoreBlock({ vance }: { vance: VanceStage }) {
   );
 }
 
+// Feature 5 — Blueprint Revision History
+function VanceRevisionHistory({ history }: { history: VanceHistoryEntry[] }) {
+  const [open, setOpen] = useState(false);
+  if (!history || history.length <= 1) return null;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', fontSize: 11, padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+      >
+        📋 {history.length} version{history.length !== 1 ? 's' : ''} {open ? '▲' : '▼'}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 8 }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Revision History</div>
+          {history.map((entry, i) => {
+            const rec = recommendationBadge(entry.recommendation);
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5, padding: '5px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, minWidth: 20 }}>v{i + 1}</span>
+                {entry.score !== null && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(entry.score, entry.score_max || 80) }}>
+                    {entry.score}/{entry.score_max || 80}
+                  </span>
+                )}
+                {entry.recommendation && (
+                  <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 99, background: rec.bg, color: rec.color, fontWeight: 600 }}>
+                    {rec.label}
+                  </span>
+                )}
+                {entry.completed_at && (
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginLeft: 'auto' }}>
+                    {new Date(entry.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActionButtons({
   client,
   onApprove,
@@ -460,6 +512,11 @@ function ClientCard({
       {/* Vance score + flags */}
       <VanceScoreBlock vance={client.pipeline.vance} />
 
+      {/* Feature 5 — Revision history */}
+      {client.vance_history && client.vance_history.length > 1 && (
+        <VanceRevisionHistory history={client.vance_history} />
+      )}
+
       {/* Revision notes if present */}
       {client.pipeline.approval.revision_notes && (
         <div style={{ marginTop: 8, padding: '7px 10px', borderRadius: 7, background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
@@ -485,6 +542,9 @@ export default function Pipeline() {
   const [showSettings, setShowSettings] = useState(false);
   const [urlInput, setUrlInput] = useState(getBackendUrl());
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'archive'>('active');
+  const [archiving, setArchiving] = useState(false);
+  const [archiveToast, setArchiveToast] = useState<string | null>(null);
 
   const fetchClients = useCallback(async () => {
     try {
@@ -551,16 +611,48 @@ export default function Pipeline() {
     }
   }, [fetchClients, setActionErrorWithTimeout]);
 
-  const needsAction = clients.filter(c =>
+  const handleArchiveLegacy = useCallback(async () => {
+    setArchiving(true);
+    setArchiveToast(null);
+    try {
+      const res = await fetch(`${getBackendUrl()}/pho/clients/archive-legacy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...NGROK_HEADERS },
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      const count = data.archived?.length ?? 0;
+      setArchiveToast(count === 0 ? 'No legacy folders found.' : `Archived ${count} legacy folder${count !== 1 ? 's' : ''}.`);
+      setTimeout(() => setArchiveToast(null), 5000);
+      await fetchClients();
+    } catch (e: any) {
+      setArchiveToast(`Archive failed: ${e.message}`);
+      setTimeout(() => setArchiveToast(null), 5000);
+    } finally {
+      setArchiving(false);
+    }
+  }, [fetchClients]);
+
+  // Feature 9 — Active/Archive tab split
+  const isFullyComplete = (c: ClientState) =>
+    c.pipeline.cipher?.status === 'complete' &&
+    c.pipeline.manus?.status === 'complete' &&
+    c.pipeline.vance?.status === 'complete' &&
+    c.pipeline.approval?.status === 'complete' &&
+    c.pipeline.client_summary?.status === 'complete';
+
+  const activeClients = clients.filter(c => !isFullyComplete(c));
+  const archivedClients = clients.filter(c => isFullyComplete(c));
+
+  const needsAction = activeClients.filter(c =>
     c.pipeline.approval.status === 'needs_action' ||
     (c.pipeline.vance.recommendation === 'approve' && c.pipeline.approval.status !== 'complete')
   );
   const needsActionIds = new Set(needsAction.map(c => c.client.id));
-  const inProgress  = clients.filter(c =>
+  const inProgress  = activeClients.filter(c =>
     ['cipher', 'manus', 'vance', 'approval', 'client_summary'].includes(c.current_stage) &&
     !needsActionIds.has(c.client.id)
   );
-  const completed   = clients.filter(c => c.current_stage === 'client_summary' && c.pipeline.client_summary.status === 'complete');
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#0a0a0a', color: 'white', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -592,6 +684,13 @@ export default function Pipeline() {
               Refreshed {lastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
+          {/* Feature 3 — Archive Legacy button */}
+          <button
+            onClick={handleArchiveLegacy}
+            disabled={archiving}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', borderRadius: 7, padding: '5px 10px', cursor: archiving ? 'not-allowed' : 'pointer', fontSize: 11, opacity: archiving ? 0.6 : 1 }}>
+            {archiving ? '...' : '🗄 Archive Legacy'}
+          </button>
           <button
             onClick={fetchClients}
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', borderRadius: 7, padding: '5px 10px', cursor: 'pointer', fontSize: 11 }}>
@@ -603,6 +702,25 @@ export default function Pipeline() {
             ⚙ Settings
           </button>
         </div>
+      </div>
+
+      {/* Feature 9 — Active / Archive tab nav */}
+      <div style={{ padding: '0 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: 0, flexShrink: 0 }}>
+        {(['active', 'archive'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '10px 16px', fontSize: 13, fontWeight: 600,
+              color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.3)',
+              borderBottom: activeTab === tab ? '2px solid #F59E0B' : '2px solid transparent',
+              marginBottom: -1, transition: 'all 0.15s',
+            }}
+          >
+            {tab === 'active' ? `Active ${activeClients.length > 0 ? `(${activeClients.length})` : ''}` : `Archive ${archivedClients.length > 0 ? `(${archivedClients.length})` : ''}`}
+          </button>
+        ))}
       </div>
 
       {/* ── Settings dropdown ── */}
@@ -634,6 +752,14 @@ export default function Pipeline() {
         </div>
       )}
 
+      {/* Feature 3 — Archive toast */}
+      {archiveToast && (
+        <div style={{ position: 'absolute', bottom: actionError ? 60 : 20, right: 20, zIndex: 999, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 10, padding: '10px 16px', fontSize: 12, color: '#4ade80', display: 'flex', alignItems: 'center', gap: 10 }}>
+          🗄 {archiveToast}
+          <button onClick={() => setArchiveToast(null)} style={{ background: 'none', border: 'none', color: '#4ade80', cursor: 'pointer', fontSize: 14 }}>×</button>
+        </div>
+      )}
+
       {/* ── Body ── */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
 
@@ -655,70 +781,129 @@ export default function Pipeline() {
           </div>
         )}
 
-        {!loading && !error && clients.length === 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
-            <div style={{ fontSize: 36 }}>📭</div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No active projects</div>
-            <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-              Projects appear here once Cipher creates a <code style={{ color: 'rgba(255,255,255,0.35)' }}>state.json</code> in the client folder.
-            </div>
+        {/* Feature 9 — Archive tab */}
+        {!loading && !error && activeTab === 'archive' && (
+          <div style={{ maxWidth: 860, margin: '0 auto' }}>
+            {archivedClients.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh', gap: 12 }}>
+                <div style={{ fontSize: 36 }}>🗄</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No completed projects yet</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 11, color: '#4ade80', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+                  Completed Projects
+                </div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {archivedClients.map(c => {
+                    const vance = c.pipeline.vance;
+                    const vanceScore = vance.score !== null ? `${vance.score}/${vance.score_max || 80}` : null;
+                    const approvedAt = c.pipeline.approval.approved_at;
+                    return (
+                      <div key={c.client.id} style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.12)', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>
+                            {c.client.show_name !== 'TBD' ? c.client.show_name : c.client.name}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{c.client.name}</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                          {vanceScore && (
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 2 }}>Vance Score</div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: scoreColor(vance.score!, vance.score_max || 80) }}>{vanceScore}</div>
+                            </div>
+                          )}
+                          {approvedAt && (
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginBottom: 2 }}>Completed</div>
+                              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+                                {new Date(approvedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </div>
+                            </div>
+                          )}
+                          <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 99, background: 'rgba(74,222,128,0.12)', color: '#4ade80', fontWeight: 600 }}>
+                            ✓ Complete
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {!loading && !error && clients.length > 0 && (
-          <div style={{ maxWidth: 860, margin: '0 auto' }}>
-
-            {/* Needs action section */}
-            {needsAction.length > 0 && (
-              <div style={{ marginBottom: 28 }}>
-                <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', boxShadow: '0 0 6px #f59e0b' }} />
-                  Needs Your Attention
-                </div>
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {needsAction.map(c => (
-                    <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
-                  ))}
+        {/* Feature 9 — Active tab (existing content) */}
+        {!loading && !error && activeTab === 'active' && (
+          <>
+            {activeClients.length === 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 12 }}>
+                <div style={{ fontSize: 36 }}>📭</div>
+                <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No active projects</div>
+                <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
+                  Projects appear here once Cipher creates a <code style={{ color: 'rgba(255,255,255,0.35)' }}>state.json</code> in the client folder.
                 </div>
               </div>
             )}
 
-            {/* In progress section */}
-            {inProgress.length > 0 && (
-              <div style={{ marginBottom: 28 }}>
-                <div style={{ fontSize: 11, color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60a5fa', display: 'inline-block' }} />
-                  In Progress
-                </div>
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {inProgress.map(c => (
-                    <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
-                  ))}
-                </div>
+            {activeClients.length > 0 && (
+              <div style={{ maxWidth: 860, margin: '0 auto' }}>
+
+                {/* Needs action section */}
+                {needsAction.length > 0 && (
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', boxShadow: '0 0 6px #f59e0b' }} />
+                      Needs Your Attention
+                    </div>
+                    <div style={{ display: 'grid', gap: 12 }}>
+                      {needsAction.map(c => (
+                        <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* In progress section */}
+                {inProgress.length > 0 && (
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ fontSize: 11, color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60a5fa', display: 'inline-block' }} />
+                      In Progress
+                    </div>
+                    <div style={{ display: 'grid', gap: 12 }}>
+                      {inProgress.map(c => (
+                        <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* All other projects */}
+                {(() => {
+                  const needsIds = new Set(needsAction.map(c => c.client.id));
+                  const inProgIds = new Set(inProgress.map(c => c.client.id));
+                  const rest = activeClients.filter(c => !needsIds.has(c.client.id) && !inProgIds.has(c.client.id));
+                  if (rest.length === 0) return null;
+                  return (
+                    <div style={{ marginBottom: 28 }}>
+                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+                        All Projects
+                      </div>
+                      <div style={{ display: 'grid', gap: 12 }}>
+                        {rest.map(c => (
+                          <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
               </div>
             )}
-
-            {/* All other projects */}
-            {(() => {
-              const needsIds = new Set(needsAction.map(c => c.client.id));
-              const inProgIds = new Set(inProgress.map(c => c.client.id));
-              const rest = clients.filter(c => !needsIds.has(c.client.id) && !inProgIds.has(c.client.id));
-              if (rest.length === 0) return null;
-              return (
-                <div style={{ marginBottom: 28 }}>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
-                    All Projects
-                  </div>
-                  <div style={{ display: 'grid', gap: 12 }}>
-                    {rest.map(c => (
-                      <ClientCard key={c.client.id} client={c} onApprove={handleApprove} onRevise={handleRevise} actionLoading={actionLoading} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-
-          </div>
+          </>
         )}
       </div>
     </div>
